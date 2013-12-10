@@ -1,0 +1,7 @@
+base bds
+author Szymon Olewniczak
+email szymon.olewniczak@rid.pl
+date 2013-11-28
+name bds
+desc Database to managing ISO systems in dokuwiki. Requires MongoDB.
+url http://www.dokuwiki.org/plugin:bds
