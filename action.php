@@ -7,7 +7,9 @@ if(!defined('DOKU_INC')) die();
  
 class action_plugin_bds extends DokuWiki_Action_Plugin {
 	
-	private $mongo;
+	private $mongo = NULL;
+
+	private $helper;
 	private $vald = array();
 	private $issue_types = array();
  
@@ -24,36 +26,51 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handle_act_unknown');
 	}
 	public function __construct() {
-		try {
-			$m = new MongoClient();
-			$this->mongo = $m->bds;
-		} catch (Exception $e) {
-			die("action_plugin_bds:__construct: MongoDB: Cannot connect with 'bds' collection.");
-		}
 		$this->issue_types[0] = $this->getLang('type_client_complaint');
 		$this->issue_types[1] = $this->getLang('type_noneconformity');
 		$this->issue_types[2] = $this->getLang('type_supplier_complaint');
 		$this->issue_types[3] = $this->getLang('type_task');
+
+		$this->helper = $this->loadHelper('bds');
+	}
+	private function bds() {
+		if ($this->mongo == NULL) {
+			try {
+				$m = new MongoClient();
+				$this->mongo = $m->bds;
+				$this->issues = $this->mongo->issues;
+			} catch (MongoException $e) {
+				//"action_plugin_bds:__construct: MongoDB: Cannot connect with 'bds' collection."
+				return false;
+			}
+		} 
+
+		return $this->mongo;
+	}
+	private function issues() {
+		$bds = $this->bds();
+		if ($bds == false) {
+			$this->error = 'error_db_conection';
+			return false;
+		} else {
+			try {
+				return $bds->issues;
+			} catch (MongoException $e) {
+				$this->error = 'error_db_conection';
+				return false;
+			}
+		}
 	}
 
 	private function _handle_main() {
 		return true;
 	}
 	private function _handle_issue_report() {
-		$issues_col = $this->mongo->issues;
-		$cursor = $issues_col->find(array(), array('_id' => 1))->sort(array('_id' => -1))->limit(1)->current();	
-
-		if ($cursor == NULL) {
-			$min_nr = 1;
-		} else {
-			$min_nr = $cursor->_id;
-		}
 
 		var_dump($this->vald);
 
 		echo '<h1>'.$this->getLang('report_issue').'</h1>';
 		echo '<form action="?do=bds_issue_add" method="POST">';
-		echo '<label>'.$this->getLang('id').': <span>#'.$min_nr.'</span></label>';
 		echo '<label for="type">'.$this->getLang('type').':</label>';
 		echo '<select name="type" id="type">';
 		foreach ($this->issue_types as $key => $name) {
@@ -78,7 +95,39 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	}
 
 	private function _handle_issue_show($id) {
-		var_dump($_POST);
+		$doc = $this->issues()->findOne(array('_id' => $id));
+		if (count($doc) == 0) {
+			return false;
+		} else {
+			var_dump($doc);
+			return true;
+		}
+	}
+	private function _handle_issues() {
+		$issues = $this->issues();
+		if ($issues == false) {
+			$this->_handle_error($this->getLang($this->error));
+		} else {
+			$doc = $issues->find()->sort(array('_id' => -1));
+			echo '<table>';
+			echo '<tr>';	
+			echo '<th>'.$this->getLang('id').'</th>';
+			echo '<th>'.$this->getLang('type').'</th>';
+			echo '<th>'.$this->getLang('title').'</th>';
+			echo '</tr>';	
+			foreach ($doc as $cursor) {
+				echo '<tr>';	
+				echo '<td><a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'">#'.$cursor['_id'].'</a></td>';
+				echo '<td>'.$this->issue_types[$cursor['type']].'</td>';
+				echo '<td>'.$cursor['title'].'</td>';
+				echo '</tr>';	
+			}
+			echo '</table>';
+		}
+	}
+
+	private function _handle_error($msg) {
+		echo '<span class="bds_error">'.$msg.'</span>';
 	}
 
 	public function handle_act_preprocess(&$event, $param) {
@@ -87,6 +136,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_report':
 			case 'bds_issue_show':
 			case 'bds_issue_add':
+			case 'bds_issues':
 				$event->stopPropagation();
 				$event->preventDefault();
 				break;
@@ -122,7 +172,27 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				}
 
 				if (count($this->vald) == 0) {
-					$event->data = 'bds_issue_show';
+					$issues = $this->issues();
+					if ($issues == false) {
+						$event->data = 'bds_error';
+					} else {
+						$cursor = iterator_to_array($issues->find(array(), array('_id' => 1))->sort(array('_id' => -1))->limit(1));
+						if (count($cursor) == 0) {
+							$min_nr = 1;
+						} else {
+							$cursor = array_pop($cursor);
+							$min_nr = $cursor['_id'] + 1;
+						}
+						$post['_id'] = $min_nr;
+						try {
+							$this->issues->insert($post);
+							$_GET['bds_issue_id'] = $min_nr;
+							$event->data = 'bds_issue_show';
+						} catch(MongoException $e) {
+							$this->error = 'error_issue_instert';
+							$event->data = 'bds_error';
+						}
+					}
 				} else {
 					$event->data = 'bds_issue_report';
 				}
@@ -135,6 +205,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_main':
 			case 'bds_issue_report':
 			case 'bds_issue_show':
+			case 'bds_issues':
+			case 'bds_error':
 				$event->stopPropagation(); 
 				$event->preventDefault();  
 				break;
@@ -147,7 +219,20 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				$this->_handle_issue_report();
 				break;
 			case 'bds_issue_show':
-				$this->_handle_issue_show();
+				if ( ! isset($_GET['bds_issue_id'])) {
+					$this->_handle_error($this->getLang('error_issue_id_not_specifed'));
+				} else {
+					$id = (int)$_GET['bds_issue_id'];
+					if ($this->_handle_issue_show($id) == false) {
+						$this->_handle_error($this->getLang('error_issue_id_unknown'));
+					}
+				}
+				break;
+			case 'bds_issues':
+				$this->_handle_issues();
+				break;
+			case 'bds_error':
+				$this->_handle_error($this->getLang($this->error));
 				break;
 		}
 	}

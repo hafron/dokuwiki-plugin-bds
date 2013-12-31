@@ -13,6 +13,11 @@ $lang['title'] = 'Tytuł';
 $lang['description'] = 'Opis';
 $lang['save'] = 'Zapisz';
 
+$lang['error_issue_id_not_specifed'] = 'Nie podałeś numeru wiersza, który chcesz odczytać.';
+$lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istnieje.';
+$lang['error_db_connection'] = 'Nie można połączyć się z bazą danych.';
+$lang['error_issue_insert'] = 'Nie można dodać nowego problemu.';
+
 $lang['vald_type_required'] = 'Musisz podać typ problemu.';
 $lang['vald_title_required'] = 'Musisz podać tytuł.';
 $lang['vald_title_too_long'] = 'Tytuł jest za długi. Maksymalna długość tytułu wynosi: %d.';
@@ -25,3 +30,4 @@ $lang['type_client_complaint'] = 'reklamacja od klienta';
 $lang['type_noneconformity'] = 'niezgodność';
 $lang['type_supplier_complaint'] = 'reklamacja do dostawcy';
 $lang['type_task'] = 'zadanie';
+
