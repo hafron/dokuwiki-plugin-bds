@@ -10,10 +10,13 @@ $lang['report_issue'] = 'Zgłoś problem';
 $lang['id'] = 'Nr';
 $lang['type'] = 'Typ';
 $lang['title'] = 'Tytuł';
+$lang['state'] = 'Status';
 $lang['reporter'] = 'Zgłaszający';
 $lang['executor'] = 'Wykonawca';
 $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
+$lang['created'] = 'Utworzone';
+$lang['opened_for'] = 'Otwarte od';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
@@ -22,6 +25,9 @@ $lang['executor_not_specified'] = 'nie przypisany';
 $lang['account_removed'] = 'konto usunięte';
 $lang['none'] = 'brak';
 
+$lang['changes_history'] = 'Historia zmian';
+$lang['add_comment'] = 'Dodaj komentarz';
+$lang['change_issue'] = 'Zmień zgłoszenie';
 
 $lang['error_issue_id_not_specifed'] = 'Nie podałeś numeru wiersza, który chcesz odczytać.';
 $lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istnieje.';
@@ -40,5 +46,9 @@ $lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długoś
 $lang['type_client_complaint'] = 'reklamacja od klienta';
 $lang['type_noneconformity'] = 'niezgodność';
 $lang['type_supplier_complaint'] = 'reklamacja do dostawcy';
-$lang['type_task'] = 'zadanie';
 
+$lang['state_proposal'] = 'propozycja';
+$lang['state_opened'] = 'otwarty';
+$lang['state_rejected'] = 'odrzucony';
+$lang['state_effective'] = 'zamknięty - skuteczny';
+$lang['state_ineffective'] = 'zamknięty - nieskuteczny';

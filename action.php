@@ -29,7 +29,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$this->issue_types[0] = $this->getLang('type_client_complaint');
 		$this->issue_types[1] = $this->getLang('type_noneconformity');
 		$this->issue_types[2] = $this->getLang('type_supplier_complaint');
-		$this->issue_types[3] = $this->getLang('type_task');
+
+		$this->issue_states[0] = $this->getLang('state_proposal');
+		$this->issue_states[1] = $this->getLang('state_opened');
+		$this->issue_states[2] = $this->getLang('state_rejected');
+		$this->issue_states[3] = $this->getLang('state_effective');
+		$this->issue_states[4] = $this->getLang('state_ineffective');
 
 		$this->helper = $this->loadHelper('bds');
 	}
@@ -67,6 +72,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		} else {
 			return false;
 		}
+	}
+	private function html_issue_link($id) {
+		return '<a href="?do=bds_issue_show&bds_issue_id='.$id.'">#'.$id.'</a>';
+	}
+	private function string_time_to_now($date) {
+		return $date;
 	}
 	private function bds() {
 		if ($this->mongo == NULL) {
@@ -119,13 +130,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '</select>';
 		echo '<label for="title">'.$this->getLang('title').':</label>';
 		echo '<input name="title" id="title" value="'.(isset($_POST['title']) ? $_POST['title'] : '').'">';
-		echo '<label for="desc">'.$this->getLang('description').':</label>';
-		echo '<textarea name="desc" id="desc">';
+		echo '<label for="description">'.$this->getLang('description').':</label>';
+		echo '<textarea name="description" id="description">';
 		if (isset($_POST['desc'])) {
 			echo $_POST['desc'];
 		}
 		echo '</textarea>';
-		if ($this->user_is_moderator()) {
+		/*if ($this->user_is_moderator()) {
 			$users = $auth->retrieveUsers();
 			echo '<label for="executor">'.$this->getLang('executor').':</label>';
 			echo '<select name="executor" id="executor">';
@@ -140,18 +151,64 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo ' value="'.$key.'">'.$name.'</opiton>';
 			}
 			echo '</select>';
-		}
+		}*/
 		echo '<input type="submit" value="'.$this->getLang('save').'">';
 		echo '</form>';
 		return true;
 	}
 
 	private function _handle_issue_show($id) {
-		$doc = $this->issues()->findOne(array('_id' => $id));
-		if (count($doc) == 0) {
+		global $auth;
+		$cursor = $this->issues()->findOne(array('_id' => $id));
+		if (count($cursor) == 0) {
 			return false;
 		} else {
-			var_dump($doc);
+			echo '<table>';
+			echo '<tr>';
+
+			echo '<th>'.$this->getLang('id').'</th>';
+			echo '<td>'.$this->html_issue_link($id).'</td>';
+
+			echo '<th>'.$this->getLang('state').'</th>';
+			echo '<td>'.$this->issue_states[$cursor['state']].'</td>';
+
+			echo '<th>'.$this->getLang('type').'</th>';
+			echo '<td>'.$this->issue_types[$cursor['type']].'</td>';
+
+			echo '<th>'.$this->getLang('opened_for').'</th>';
+			echo '<td>'.$this->string_time_to_now($cursor['date']).'</td>';
+
+			echo '</tr>';	
+
+			echo '<tr>';	
+
+			echo '<th>'.$this->getLang('title').'</th>';
+			echo '<td colspan="5">'.$cursor['title'].'</td>';
+			echo '<th>'.$this->getLang('coordinator').'</th>';
+			if (isset($cursor['coordinator'])) {
+				$data = $auth->getUserData($cursor['coordinator']);
+				echo '<td>'.$data['name'].'</td>';
+			} else {
+				$data = $auth->getUserData($cursor['reporter']);
+				if ($data == false) {
+					$rep_name = '('.$this->getLang('account_removed').')';
+				} else {
+					$rep_name = $data['name'];
+				}
+				echo '<td><em>'.$this->getLang('none').' - '.$this->getLang('proposal').' '.$this->getLang('reported_by').' '.$rep_name.'</em></td>';
+			}
+			echo '</tr>';	
+			echo '<tr>';	
+			echo '<th>'.$this->getLang('description').'</th>';
+			echo '<td colspan="7">'.$cursor['description'].'</td>';
+			echo '</tr>';	
+			echo '</table>';	
+
+			echo '<td>'.date($this->getConf('date_format'), $cursor['date']).'</td>';
+
+			echo '<h1>'.$this->getLang('changes_history').'</h1>';
+			echo '<h1>'.$this->getLang('add_comment').'</h1>';
+			echo '<h1>'.$this->getLang('change_issue').'</h1>';
 			return true;
 		}
 	}
@@ -165,18 +222,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '<table>';
 			echo '<tr>';	
 			echo '<th>'.$this->getLang('id').'</th>';
+			echo '<th>'.$this->getLang('state').'</th>';
 			echo '<th>'.$this->getLang('type').'</th>';
 			echo '<th>'.$this->getLang('title').'</th>';
-			//echo '<th>'.$this->getLang('reporter').'</th>';
 			echo '<th>'.$this->getLang('coordinator').'</th>';
+			echo '<th>'.$this->getLang('created').'</th>';
 			echo '</tr>';	
 			foreach ($doc as $cursor) {
 				echo '<tr>';	
-				echo '<td><a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'">#'.$cursor['_id'].'</a></td>';
+				echo '<td>'.$this->html_issue_link($cursor['_id']).'</td>';
+				echo '<td>'.$this->issue_states[$cursor['state']].'</td>';
 				echo '<td>'.$this->issue_types[$cursor['type']].'</td>';
 				echo '<td>'.$cursor['title'].'</td>';
-				/*$data = $auth->getUserData($cursor['reporter']);
-				echo '<td>'.$data['name'].'</td>';*/
 				if (isset($cursor['coordinator'])) {
 					$data = $auth->getUserData($cursor['coordinator']);
 					echo '<td>'.$data['name'].'</td>';
@@ -188,14 +245,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						$rep_name = $data['name'];
 					}
 					echo '<td><em>'.$this->getLang('none').' - '.$this->getLang('proposal').' '.$this->getLang('reported_by').' '.$rep_name.'</em></td>';
-					//echo '<td><em>'.$this->getLang('none').'</em></td>';
 				}
-				/*if (isset($cursor['executor'])) {
-					$data = $auth->getUserData($cursor['executor']);
-					echo '<td>'.$data['name'].'</td>';
-				} else {
-					echo '<td><em>'.$this->getLang('executor_not_specified').'</em></td>';
-				}*/
+				echo '<td>'.date($this->getConf('date_format'), $cursor['date']).'</td>';
 				echo '</tr>';	
 			}
 			echo '</table>';
@@ -243,17 +294,17 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$post['title'] = $_POST['title'];
 				}
 
-				$_POST['desc'] = trim($_POST['desc']);
-				if (strlen($_POST['desc']) == 0) {
-					$this->vald['desc'] = $this->getLang('vald_desc_required');
-				} else if (strlen($_POST['desc']) > $this->getConf('desc_max_len')) {
-					$this->vald['desc'] = str_replace('%d', $this->getConf('desc_max_len'), $this->getLang('vald_desc_too_long'));
+				$_POST['description'] = trim($_POST['description']);
+				if (strlen($_POST['description']) == 0) {
+					$this->vald['description'] = $this->getLang('vald_desc_required');
+				} else if (strlen($_POST['description']) > $this->getConf('desc_max_len')) {
+					$this->vald['description'] = str_replace('%d', $this->getConf('desc_max_len'), $this->getLang('vald_desc_too_long'));
 				} else {
-					$post['desc'] = $_POST['desc'];
+					$post['description'] = $_POST['description'];
 				}
 
 				//executor
-				if ($this->user_is_moderator()) {
+				/*if ($this->user_is_moderator()) {
 					//if '' do not count this filed
 					if ($_POST['executor'] != '') {
 						$users = $auth->retrieveUsers();
@@ -263,7 +314,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$post['executor'] = $_POST['executor'];
 						}
 					}
-				}
+				}*/
 
 
 				if (count($this->vald) == 0) {
@@ -283,7 +334,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						if ($this->user_is_moderator()) {
 							$post['coordinator'] = $INFO['client'];
 						}
+						if ($this->user_is_moderator()) {
+							$post['state'] = 1;
+						} else {
+							$post['state'] = 0;
+						}
 						$post['date'] = time();
+
 						try {
 							$this->issues->insert($post);
 							$_GET['bds_issue_id'] = $min_nr;
