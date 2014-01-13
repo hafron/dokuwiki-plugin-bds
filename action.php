@@ -33,6 +33,41 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 		$this->helper = $this->loadHelper('bds');
 	}
+	private function user_can_edit() {
+		global $INFO;
+		global $auth;
+
+		if ($auth->getUserData($INFO['client']) == true) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	private function user_can_view() {
+		global $INFO;
+		global $auth;
+
+		if ($auth->getUserData($INFO['client']) == true) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	private function user_is_moderator() {
+		global $INFO;
+		global $auth;
+
+		$data = $auth->getUserData($INFO['client']);
+		if ($data == false) {
+			return false;
+		} elseif (in_array('bds_moderator', $data['grps'])) {
+			return true;	
+		} elseif (in_array('admin', $data['grps'])) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	private function bds() {
 		if ($this->mongo == NULL) {
 			try {
@@ -66,6 +101,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		return true;
 	}
 	private function _handle_issue_report() {
+		global $auth;
 
 		var_dump($this->vald);
 
@@ -89,6 +125,22 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo $_POST['desc'];
 		}
 		echo '</textarea>';
+		if ($this->user_is_moderator()) {
+			$users = $auth->retrieveUsers();
+			echo '<label for="executor">'.$this->getLang('executor').':</label>';
+			echo '<select name="executor" id="executor">';
+			//add empty option
+			$users = array('' => array('name' => $this->getLang('none'))) + $users;
+			foreach ($users as $key => $data) {
+				$name = $data['name'];
+				echo '<option';
+				if (isset($_POST['executor']) && $_POST['executor'] == $key) {
+					echo ' selected';
+				}
+				echo ' value="'.$key.'">'.$name.'</opiton>';
+			}
+			echo '</select>';
+		}
 		echo '<input type="submit" value="'.$this->getLang('save').'">';
 		echo '</form>';
 		return true;
@@ -104,6 +156,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 	private function _handle_issues() {
+		global $auth;
 		$issues = $this->issues();
 		if ($issues == false) {
 			$this->_handle_error($this->getLang($this->error));
@@ -114,12 +167,35 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '<th>'.$this->getLang('id').'</th>';
 			echo '<th>'.$this->getLang('type').'</th>';
 			echo '<th>'.$this->getLang('title').'</th>';
+			//echo '<th>'.$this->getLang('reporter').'</th>';
+			echo '<th>'.$this->getLang('coordinator').'</th>';
 			echo '</tr>';	
 			foreach ($doc as $cursor) {
 				echo '<tr>';	
 				echo '<td><a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'">#'.$cursor['_id'].'</a></td>';
 				echo '<td>'.$this->issue_types[$cursor['type']].'</td>';
 				echo '<td>'.$cursor['title'].'</td>';
+				/*$data = $auth->getUserData($cursor['reporter']);
+				echo '<td>'.$data['name'].'</td>';*/
+				if (isset($cursor['coordinator'])) {
+					$data = $auth->getUserData($cursor['coordinator']);
+					echo '<td>'.$data['name'].'</td>';
+				} else {
+					$data = $auth->getUserData($cursor['reporter']);
+					if ($data == false) {
+						$rep_name = '('.$this->getLang('account_removed').')';
+					} else {
+						$rep_name = $data['name'];
+					}
+					echo '<td><em>'.$this->getLang('none').' - '.$this->getLang('proposal').' '.$this->getLang('reported_by').' '.$rep_name.'</em></td>';
+					//echo '<td><em>'.$this->getLang('none').'</em></td>';
+				}
+				/*if (isset($cursor['executor'])) {
+					$data = $auth->getUserData($cursor['executor']);
+					echo '<td>'.$data['name'].'</td>';
+				} else {
+					echo '<td><em>'.$this->getLang('executor_not_specified').'</em></td>';
+				}*/
 				echo '</tr>';	
 			}
 			echo '</table>';
@@ -131,6 +207,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	}
 
 	public function handle_act_preprocess(&$event, $param) {
+		global $INFO;
+		global $auth;
+		if ( ! $this->user_can_view()) {
+			return false;
+		}
 		switch($event->data) {
 			case 'bds_main':
 			case 'bds_issue_report':
@@ -171,6 +252,20 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$post['desc'] = $_POST['desc'];
 				}
 
+				//executor
+				if ($this->user_is_moderator()) {
+					//if '' do not count this filed
+					if ($_POST['executor'] != '') {
+						$users = $auth->retrieveUsers();
+						if ( ! array_key_exists($_POST['executor'], $users)) {
+							$this->vald['executor'] = $this->getLang('vald_executor_required');
+						} else {
+							$post['executor'] = $_POST['executor'];
+						}
+					}
+				}
+
+
 				if (count($this->vald) == 0) {
 					$issues = $this->issues();
 					if ($issues == false) {
@@ -184,6 +279,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$min_nr = $cursor['_id'] + 1;
 						}
 						$post['_id'] = $min_nr;
+						$post['reporter'] = $INFO['client'];
+						if ($this->user_is_moderator()) {
+							$post['coordinator'] = $INFO['client'];
+						}
+						$post['date'] = time();
 						try {
 							$this->issues->insert($post);
 							$_GET['bds_issue_id'] = $min_nr;
@@ -201,6 +301,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	}
 
 	public function handle_act_unknown(& $event, $param) {
+		if ( ! $this->user_can_view()) {
+			return false;
+		}
 		switch ($event->data) {
 			case 'bds_main':
 			case 'bds_issue_report':
@@ -239,19 +342,32 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
  
 	public function add_menu_item(&$event, $param) {
 		global $lang;
+
+		if ( ! $this->user_can_view()) {
+			return false;
+		}
+
 		$lang['btn_bds_main'] = $this->getLang('bds_main');
 		$lang['btn_bds_issues'] = $this->getLang('bds_issues');
-		$lang['btn_bds_issue_report'] = $this->getLang('bds_issue_report');
+
+		if ($this->user_can_edit()) {
+			$lang['btn_bds_issue_report'] = $this->getLang('bds_issue_report');
+		}
 		$lang['btn_bds_reports'] = $this->getLang('bds_reports');
 
 		$event->data['items']['separator'] = '<li>|</li>';
 
 		$event->data['items']['bds_main'] = tpl_action('bds_main', 1, 'li', 1);
 		$event->data['items']['bds_issues'] = tpl_action('bds_issues', 1, 'li', 1);
-		$event->data['items']['bds_issue_report'] = tpl_action('bds_issue_report', 1, 'li', 1);
+		if ($this->user_can_edit()) {
+			$event->data['items']['bds_issue_report'] = tpl_action('bds_issue_report', 1, 'li', 1);
+		}
 		$event->data['items']['bds_reports'] = tpl_action('bds_reports', 1, 'li', 1);
 	}
 	public function add_action(&$event, $param) {
+		if ( ! $this->user_can_view()) {
+			return false;
+		}
 		$data = &$event->data;
 
 		switch($data['type']) {
