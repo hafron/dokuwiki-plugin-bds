@@ -17,6 +17,8 @@ $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
 $lang['created'] = 'Utworzone';
 $lang['opened_for'] = 'Otwarte od';
+$lang['last_modified'] = 'Ostatnio zmienione';
+$lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
@@ -48,7 +50,7 @@ $lang['type_noneconformity'] = 'niezgodność';
 $lang['type_supplier_complaint'] = 'reklamacja do dostawcy';
 
 $lang['state_proposal'] = 'propozycja';
-$lang['state_opened'] = 'otwarty';
-$lang['state_rejected'] = 'odrzucony';
-$lang['state_effective'] = 'zamknięty - skuteczny';
-$lang['state_ineffective'] = 'zamknięty - nieskuteczny';
+$lang['state_opened'] = 'otwarta';
+$lang['state_rejected'] = 'odrzucona';
+$lang['state_effective'] = 'zamknięta - skuteczny';
+$lang['state_ineffective'] = 'zamknięta - nieskuteczny';
