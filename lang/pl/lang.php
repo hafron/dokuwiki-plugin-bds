@@ -31,6 +31,9 @@ $lang['changes_history'] = 'Historia zmian';
 $lang['add_comment'] = 'Dodaj komentarz';
 $lang['change_issue'] = 'Zmień zgłoszenie';
 
+$lang['changed'] = 'Zmieniono';
+$lang['by'] = 'przez';
+
 $lang['error_issue_id_not_specifed'] = 'Nie podałeś numeru wiersza, który chcesz odczytać.';
 $lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istnieje.';
 $lang['error_db_connection'] = 'Nie można połączyć się z bazą danych.';
@@ -41,6 +44,7 @@ $lang['vald_title_required'] = 'Musisz podać tytuł.';
 $lang['vald_title_too_long'] = 'Tytuł jest za długi. Maksymalna długość tytułu wynosi: %d.';
 $lang['vald_title_wrong_chars'] = 'Tytuł zawiera niedozwolone znaki. Dozwolone znaki to litery, cyfry, spacje, myślniki, kropki i przecinki.';
 $lang['vald_executor_required'] = 'Musisz wybrać istniejącego użytkownika albo na razie nie przypisywać problemu do nikogo.';
+$lang['vald_coordinator_required'] = 'Koordynator musi być jednocześnie moderatorem BDSa.';
 
 $lang['vald_desc_required'] = 'Musisz podać opis problemu.';
 $lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długość opisu wynosi: %d.';

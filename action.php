@@ -58,11 +58,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return false;
 		}
 	}
-	private function user_is_moderator() {
+	private function user_is_moderator($user=NULL) {
 		global $INFO;
 		global $auth;
+		if ($user == NULL)
+			$user = $INFO['client'];
 
-		$data = $auth->getUserData($INFO['client']);
+
+		$data = $auth->getUserData($user);
 		if ($data == false) {
 			return false;
 		} elseif (in_array('bds_moderator', $data['grps'])) {
@@ -74,6 +77,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 	private function html_generate_report_form($action, $default=array()) {
+		global $auth;
 		$value = array();
 		if (isset($_POST['type'])) {
 			$value['type'] = $_POST['type'];
@@ -99,6 +103,15 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$value['description'] = '';
 		}
 
+		if (isset($_POST['coordinator'])) {
+			$value['coordinator'] = $_POST['coordinator'];
+		} elseif (isset($default['coordinator'])) {
+			$value['coordinator'] = $default['coordinator'];
+		} else {
+			$value['coordinator'] = '';
+		}
+
+
 		var_dump($this->vald);
 
 		echo '<form action="'.$action.'" method="POST">';
@@ -118,22 +131,26 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '<textarea name="description" id="description">';
 		echo $value['description'];
 		echo '</textarea>';
-		/*if ($this->user_is_moderator()) {
-			$users = $auth->retrieveUsers();
-			echo '<label for="executor">'.$this->getLang('executor').':</label>';
-			echo '<select name="executor" id="executor">';
-			//add empty option
-			$users = array('' => array('name' => $this->getLang('none'))) + $users;
-			foreach ($users as $key => $data) {
-				$name = $data['name'];
-				echo '<option';
-				if (isset($_POST['executor']) && $_POST['executor'] == $key) {
-					echo ' selected';
+
+		//edit case
+		if (count($default) > 0) {
+			if ($this->user_is_moderator()) {
+				$users = $auth->retrieveUsers();
+				echo '<label for="coordinator">'.$this->getLang('coordinator').':</label>';
+				echo '<select name="coordinator" id="coordinator">';
+				foreach ($users as $key => $data) {
+					if ($this->user_is_moderator($key)) {
+						$name = $data['name'];
+						echo '<option';
+						if ($value['coordinator'] == $key) {
+							echo ' selected';
+						}
+						echo ' value="'.$key.'">'.$name.'</opiton>';
+					}
 				}
-				echo ' value="'.$key.'">'.$name.'</opiton>';
-			}
 			echo '</select>';
-		}*/
+			}
+		}
 		echo '<input type="submit" value="'.$this->getLang('save').'">';
 		echo '</form>';
 	}
@@ -246,7 +263,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '</tr>';	
 			echo '</table>';
 
-			$desc_author = $cursor['reporter'];
+			if (isset($cursor['last_description_author'])) {
+				$desc_author = $cursor['last_description_author'];
+			} else {
+				$desc_author = $cursor['reporter'];
+			}
 			echo '<h2>';
 			echo $this->getLang('description');
 			echo  '('.$this->getLang('last_modified_by').' '.$desc_author.')';
@@ -258,6 +279,22 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '</div>';
 
 			echo '<h1>'.$this->getLang('changes_history').'</h1>';
+			$fileds = array('title', 'description');
+			foreach ($cursor['events'] as $event) {
+				switch ($event['type']) {
+					case 'change':
+					echo '<h2>';
+					echo $this->getLang('changed');
+					echo ' ';
+					echo $this->getLang('by');
+					echo ' ';
+					echo $this->string_get_full_name($event['author']);
+					echo '</h2>';
+					foreach($fileds) {
+					}
+					break;
+				}
+			}
 			echo '<h1>'.$this->getLang('add_comment').'</h1>';
 			echo '<h1>'.$this->getLang('change_issue').'</h1>';
 			$this->html_generate_report_form('?do=bds_issue_change&bds_issue_id='.$cursor['_id'], $cursor);
@@ -346,20 +383,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$post['description'] = $_POST['description'];
 				}
 
-				//executor
-				/*if ($this->user_is_moderator()) {
-					//if '' do not count this filed
-					if ($_POST['executor'] != '') {
-						$users = $auth->retrieveUsers();
-						if ( ! array_key_exists($_POST['executor'], $users)) {
-							$this->vald['executor'] = $this->getLang('vald_executor_required');
-						} else {
-							$post['executor'] = $_POST['executor'];
-						}
-					}
-				}*/
-
-
 				switch($event->data) {
 					case 'bds_issue_add':
 						if (count($this->vald) == 0) {
@@ -401,6 +424,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						break;
 					case 'bds_issue_change':
 						//_id -> $_GET['bds_issue_id'];
+						if ($this->user_is_moderator($_POST['coordinator'])) {
+							$post['coordinator'] = $_POST['coordinator'];
+						} else {
+							$this->vald['type'] = $this->getLang('vald_coordinator_required');
+						}
+
 						if (count($this->vald) == 0) {
 							$issues = $this->issues();
 							if ($issues == false) {
@@ -408,12 +437,34 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							} else {
 								try {
 									$id = (int)$_GET['bds_issue_id'];
-									$issues->update(array('_id' => $id), array('$set' => $post));
-									$event->data = 'bds_issue_show';
-									} catch(MongoException $e) {
-										$this->error = 'error_issue_update';
-										$event->data = 'bds_error';
+									$events = array();
+
+									//determine changes
+									$cursor = $this->issues()->findOne(array('_id' => $id));
+									$events = array_diff_assoc($post, $cursor);
+									//something was changed
+									if (count($events) > 0) {
+										$events['type'] = 'change';
+										$events['author'] = $INFO['client'];
+
+										$post['last_mod_author'] = $INFO['client'];
+										$post['last_mod_date'] = time();
+
+										if ($post['description'] != $cursor['description']) {
+											$post['last_description_author'] = $INFO['client'];
+										}
+
+										$issues->update(array('_id' => $id), array('$set' => $post)); 
+										
+										$issues->update(array('_id' => $id), array('$push' => 
+												array('events' => $events)
+											));
 									}
+									$event->data = 'bds_issue_show';
+								} catch(MongoException $e) {
+									$this->error = 'error_issue_update';
+									$event->data = 'bds_error';
+								}
 							}
 						} else {
 							$event->data = 'bds_issue_show';
