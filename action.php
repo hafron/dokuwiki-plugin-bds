@@ -45,7 +45,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$this->issue_states[3] = $this->getLang('state_effective');
 		$this->issue_states[4] = $this->getLang('state_ineffective');
 
-		$this->task_classes = array('mong', 'eu');
+		$this->task_classes = array();
+		$classes_ex = explode(',', $this->getConf('task_classes'));
+		foreach ($classes_ex as $class) {
+			$this->task_classes[] = trim($class);
+		}
 
 		$this->blocking_states = array(2, 3, 4);
 
@@ -228,7 +232,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '<input type="hidden" name="event" value="comment">';
 		echo '<textarea name="content" id="content">';
 
-		if (isset($data['replay_to']) && !isset($_POST['content'])) {
+		if (isset($default['content']) && !isset($_POST['content'])) {
+			echo $default['content'];
+		} elseif (isset($data['replay_to']) && !isset($_POST['content'])) {
 			echo $this->get_event_replay_content($cursor['_id'], (int) $data['replay_to']);
 		} else if (isset($_POST['content']) && count($this->vald_comment) > 0) {
 			echo $_POST['content'];
@@ -459,7 +465,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '<span>';
 			echo $this->string_time_to_now($cursor['date']);
 			if (isset($cursor['last_mod_date'])) {
-				echo $this->getLang('last_modified');
+				if (in_array($cursor['state'], $this->blocking_states)) {
+					echo $this->getLang('closed');
+				} else {
+					echo $this->getLang('last_modified');
+				}
 				echo ': ';
 				echo $this->string_time_to_now($cursor['last_mod_date']);
 				echo '</span>';
@@ -499,9 +509,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					//create anchor
 					echo '<a name="'.$event['id'].'">';
 					echo '<h2>';
-					switch ($event['event']) {
+					switch ($event['type']) {
 						case 'comment':
 							echo $this->getLang('comment_added');
+							break;
+						case 'change':
+							echo $this->getLang('change_made');
 							break;
 						case 'task':
 							echo $this->getLang('task_added');
@@ -538,41 +551,67 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						echo '<a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&replay_by_task='.$event['id'].'#task_form">'.$this->getLang('replay_by_task').'</a>';
 						echo ' ';
 					}
-					echo '<a href="?do=bds_issue_change_event&bds_issue_id='.$cursor['_id'].'&event_id='.$event['id'].'">'.$this->getLang('edit').'</a>';
+					echo '<a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$event['id'].'#'.$event['type'].'_form">'.$this->getLang('edit').'</a>';
 
 					switch ($event['type']) {
 						case 'change':
-						echo '<ul>';
-						foreach($event['new'] as $field => $new) {
-							echo '<li>';
-							echo '<strong>';
-							echo $this->getLang($field);
-							echo '</strong>';
-							echo ' ';
-							if ($field == 'description') {
-								echo $this->getLang('modified');
-								echo '(';
-								echo $this->getLang('diff');
-								echo ')';
-							} else {
+							echo '<ul>';
+							foreach($event['new'] as $field => $new) {
+								echo '<li>';
+								echo '<strong>';
+								echo $this->getLang($field);
+								echo '</strong>';
 								echo ' ';
-								echo $this->getLang('changed_field');
-								echo ' ';
-								echo $this->getLang('from');
-								echo ' ';
-								echo '<em>';
-								echo $this->string_format_field($field, $event['prev'][$field]);
-								echo '</em>';
-								echo ' ';
-								echo $this->getLang('to');
-								echo ' ';
-								echo '<em>';
-								echo $this->string_format_field($field, $new);
-								echo '</em>';
+								if ($field == 'description') {
+									echo $this->getLang('modified');
+									echo '(';
+									echo $this->getLang('diff');
+									echo ')';
+								} else {
+									echo ' ';
+									echo $this->getLang('changed_field');
+									echo ' ';
+									echo $this->getLang('from');
+									echo ' ';
+									echo '<em>';
+									echo $this->string_format_field($field, $event['prev'][$field]);
+									echo '</em>';
+									echo ' ';
+									echo $this->getLang('to');
+									echo ' ';
+									echo '<em>';
+									echo $this->string_format_field($field, $new);
+									echo '</em>';
+								}
+								echo '</li>';
 							}
-							echo '</li>';
-						}
-						echo '</ul>';
+							echo '</ul>';
+						break;
+						case 'task':
+							echo '<table>';	
+							echo '<tr>';
+								echo '<th>';
+								echo $this->getLang('executor');
+								echo ':</th>';
+								echo '<td>';
+								echo $this->string_format_field('name', $event['executor']);
+								echo '</td>';
+								echo '<th>';
+								echo $this->getLang('class');
+								echo ':</th>';
+								echo '<td>';
+								echo $this->string_format_field('class', $event['class']);
+								echo '</td>';
+								if (isset($event['cost'])) {
+									echo '<th>';
+									echo $this->getLang('cost');
+									echo ':</th>';
+									echo '<td>';
+									echo $this->string_format_field('cost', $event['cost']);
+									echo '</td>';
+								}
+							echo '</tr>';
+							echo '</table>';	
 						break;
 					}
 					if (isset($event['content'])) {
@@ -608,15 +647,49 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '</form>';
 				}
 			} else {
+				$ev_type = '';
+				if (isset($_GET['bds_event_id'])) {
+					$bds_event_id = (int)$_GET['bds_event_id'];
 
-				$action = '?do=bds_issue_add_event&bds_issue_id='.$cursor['_id'].'';
-				$this->html_generate_event_form($action, $cursor, 
-					array('submit' => $this->getLang('comment'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('add_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_add_event', 'replay_to' => $_GET['replay_to']));
+					$issues = $this->issues();
+					if ($issues == false) {
+						//we need error handling here;
+						//$this->error = 'error_db_connection';
+						//$event->data = 'bds_error';
+						return;
+					} else {
+						$ev_type = '';
+						foreach ($cursor['events'] as $ev) {
+							if ($ev['id'] == $bds_event_id) {
+								$ev_type = $ev['type'];
+								$ev_cursor = $ev;
+							}
+						}
+						if ($ev_type == '') {
+							//we need error handling here(by header(Location))
+							//$this->error = 'error_event_id_unknown';
+							//$event->data = 'bds_error';
+							return;
+						}
+					}
+				}
+				if ($ev_type == 'comment') {
+					$action = '?do=bds_issue_change_event&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$bds_event_id;
+					$this->html_generate_event_form($action, $cursor, 
+						array('submit' => $this->getLang('comment'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('change_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_event'), $ev_cursor);
+				} else {
+					$action = '?do=bds_issue_add_event&bds_issue_id='.$cursor['_id'].'';
+					$this->html_generate_event_form($action, $cursor, 
+						array('submit' => $this->getLang('comment'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('add_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_add_event', 'replay_to' => $_GET['replay_to']));
+				}
 
 				if ($this->user_is_moderator() ) {
-					$action = '?do=bds_issue_add_task&bds_issue_id='.$cursor['_id'].'';
-					$this->html_generate_event_form($action, $cursor, 
-						array('submit' => $this->getLang('add'), 'header' => array('name' => 'task_form', 'value' => $this->getLang('add_task')), 'event' => $_GET['do'], 'do' => 'bds_issue_add_task', 'replay_to' => $_GET['replay_by_task']));
+					if ($ev_type == 'task') {
+					} else {
+						$action = '?do=bds_issue_add_task&bds_issue_id='.$cursor['_id'].'';
+						$this->html_generate_event_form($action, $cursor, 
+							array('submit' => $this->getLang('add'), 'header' => array('name' => 'task_form', 'value' => $this->getLang('add_task')), 'event' => $_GET['do'], 'do' => 'bds_issue_add_task', 'replay_to' => $_GET['replay_by_task']));
+					}
 				}
 
 
@@ -675,6 +748,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_change':
 			case 'bds_issue_reopen':
 			case 'bds_issue_add_event':
+			case 'bds_issue_change_event':
 			case 'bds_issue_add_task':
 			case 'bds_issues':
 				$event->stopPropagation();
@@ -762,6 +836,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						}
 
 					//check only state when user is reopening issue
+					//FALLTHROUGH
 					case 'bds_issue_reopen':
 						if ( ! array_key_exists((int)$_POST['state'], $this->issue_states)) {
 							$this->vald['state'] = $this->getLang('vald_state_required');
@@ -824,6 +899,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				}
 				break;
 			case 'bds_issue_add_task':
+			case 'bds_issue_change_task':
+
 				if ($this->user_is_moderator()) {
 					if ($this->user_exists($_POST['executor'])) {
 						$post['executor'] = $_POST['executor'];
@@ -861,14 +938,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				} else {
 					$this->error = 'error_task_add';
 					$event->data = 'bds_error';
+					break;
 				}
-				$post['event'] = 'task';
+				$post['type'] = 'task';
 				//FALL THROUGH
 			case 'bds_issue_add_event':
-				if ( ! isset($post['event'])) {
-					$post['event'] = 'comment';
+			case 'bds_issue_change_event':
+				if ( ! isset($post['type'])) {
+					$post['type'] = 'comment';
 				}
 				//_id -> $_GET['bds_issue_id'];
+				$id = (int)$_GET['bds_issue_id'];
+				$cursor = $this->issues()->findOne(array('_id' => $id));
+				if ($cursor == NULL) {
+						$this->error = 'error_issue_id_unknown';
+						$event->data = 'bds_error';
+						break;
+				}
 
 				$_POST['content'] = trim($_POST['content']);
 				if (strlen($_POST['content']) == 0) {
@@ -880,61 +966,133 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				}
 				
 				try {
-					$id = (int)$_GET['bds_issue_id'];
-					$cursor = $this->issues()->findOne(array('_id' => $id));
 
-					if (isset($_GET['replay_to'])) {
-						$replay_to = (int) $_GET['replay_to'];
-						$found = false;
-						foreach ($cursor['events'] as $key => $ev) {
-							if ($ev['id'] == $replay_to) {
-								$found = true;
+					//editing
+					if ($event->data == 'bds_issue_change_event' || $event->data == 'bds_issue_change_task') {
+						$bds_event_id = (int)$_GET['bds_event_id'];
+						$bds_edited_event = array();
+
+						$issues = $this->issues();
+						if ($issues == false) {
+							$this->error = 'error_db_connection';
+							$event->data = 'bds_error';
+							break;
+						} else {
+							$id_exists = false;
+							foreach ($cursor['events'] as $ev) {
+								if ($ev['id'] == $bds_event_id) {
+									$id_exists = true;
+									$bds_edited_event = $ev;
+								}
+							}
+							if ($id_exists == false) {
+								$this->error = 'error_event_id_unknown';
+								$event->data = 'bds_error';
 								break;
 							}
 						}
-						if ($found == false) {
-							$this->vald_comment['event'] = $this->getLang('vald_replay_to_not_exists');
-						} else {
-							$post['replay_to'] = $replay_to;
-						}
-					}
+						if (count($this->vald_comment) == 0) {
+							$issues = $this->issues();
+							if ($issues == false) {
+								throw new MongoException('Cannto load issues.');
+							}
+							//$bds_edited_event;
+							if ( ! isset($bds_edited_event['rev'])) {
+								$bds_edited_event['rev'] = array();
+							}
+							$old_event = $bds_edited_event;
+							unset($old_event['rev']);
 
-					if (count($this->vald_comment) == 0) {
-						$issues = $this->issues();
-						if ($issues == false) {
-							$event->data = 'bds_error';
-						} else {
-							//start from 1;
-							$post['id'] = count($cursor['events']) + 1;
-							$post['author'] = $INFO['client'];
-							$post['date'] = time();
+							$post['last_mod_author'] = $INFO['client'];
+							$post['last_mod_date'] = time();
+							$post['quoted_in'] = $old_event['quoted_in']; 
+							$post['replay_to'] = $old_event['replay_to']; 
+
+							unset($old_event['quoted_in']);
+							unset($old_event['replay_to']);
+							unset($old_event['last_mod_date']);
+							unset($old_event['last_mod_author']);
+							unset($old_event['type']);
+							unset($old_event['id']);
+
+
+							array_unshift($bds_edited_event['rev'], $old_event);
+							$post['rev'] = $bds_edited_event['rev'];
+
+							$events = array();
+							foreach ($post as $k => $v) {
+								$events['events.$.'.$k] = $v;
+							}
+
+							$issues->update(array('_id' => $id, 'events.id' => $bds_event_id), array('$set' => $events)); 
 
 							$issue['last_mod_author'] = $INFO['client'];
 							$issue['last_mod_date'] = time();
-
 							$issues->update(array('_id' => $id), array('$set' => $issue)); 
 
-							if (isset($_GET['replay_to'])) {
-								$quoted['events.$.quoted_in'] = $post['id'];
-								$issues->update(array('_id' => $id, 'events.id' => $replay_to), 
-													array('$push' => $quoted)); 
-							}
-							
-							$issues->update(array('_id' => $id), array('$push' => 
-										array('events' => $post)
-									));
 
+							//redirecting 
 							$event->data = 'bds_issue_show';
-							//scroll down to new one
-							$this->anchor = $post['id'];
+							$this->anchor = $bds_event_id;
+							var_dump($this->anchor);
+						} else {
+							$event->data ='bds_issue_show';
 						}
+					//adding 
 					} else {
-						$event->data = 'bds_issue_show';
+						if (isset($_GET['replay_to'])) {
+							$replay_to = (int) $_GET['replay_to'];
+							$found = false;
+							foreach ($cursor['events'] as $key => $ev) {
+								if ($ev['id'] == $replay_to) {
+									$found = true;
+									break;
+								}
+							}
+							if ($found == false) {
+								$this->vald_comment['event'] = $this->getLang('vald_replay_to_not_exists');
+							} else {
+								$post['replay_to'] = $replay_to;
+							}
+						}
+
+						if (count($this->vald_comment) == 0) {
+							$issues = $this->issues();
+							if ($issues == false) {
+								throw new MongoException('Cannto load issues.');
+							} else {
+								//start from 1;
+								$post['id'] = count($cursor['events']) + 1;
+								$post['author'] = $INFO['client'];
+								$post['date'] = time();
+
+								$issue['last_mod_author'] = $INFO['client'];
+								$issue['last_mod_date'] = time();
+
+								$issues->update(array('_id' => $id), array('$set' => $issue)); 
+
+								if (isset($_GET['replay_to'])) {
+									$quoted['events.$.quoted_in'] = $post['id'];
+									$issues->update(array('_id' => $id, 'events.id' => $replay_to), 
+														array('$push' => $quoted)); 
+								}
+								
+								$issues->update(array('_id' => $id), array('$push' => 
+											array('events' => $post)
+										));
+
+								$event->data = 'bds_issue_show';
+								//scroll down to new one
+								$this->anchor = $post['id'];
+							}
+						} else {
+							$event->data = 'bds_issue_show';
+						}
 					}
-				} catch(MongoException $e) {
-					$this->error = 'error_issue_update';
-					$event->data = 'bds_error';
-				}
+					} catch(MongoException $e) {
+						$this->error = 'error_event_add';
+						$event->data = 'bds_error';
+					}
 		}
 		//need relocating
 		if ($this->anchor != '') {
@@ -948,6 +1106,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			//some special changes
 			if (count($this->vald_comment) == 0) {
 				unset($get['replay_to']);
+				unset($get['bds_event_id']);
 			}
 			$url = '?';
 			foreach ($get as $k => $v) {

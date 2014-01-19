@@ -103,3 +103,6 @@ $lang['task_added'] = 'Zadanie dodane';
 $lang['comment_added'] = 'Komentarz dodany';
 
 $lang['replay_by_task'] = 'Odpowiedz zadaniem';
+$lang['change_made'] = 'Zmiana wprowadzona';
+
+$lang['change_comment'] = 'Zmodyfikuj komentarz';
