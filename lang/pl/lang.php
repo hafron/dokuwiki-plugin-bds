@@ -106,3 +106,8 @@ $lang['replay_by_task'] = 'Odpowiedz zadaniem';
 $lang['change_made'] = 'Zmiana wprowadzona';
 
 $lang['change_comment'] = 'Zmodyfikuj komentarz';
+
+$lang['preview'] = 'starsze';
+$lang['next'] = 'nowsze';
+
+$lang['version'] = 'Wersja';

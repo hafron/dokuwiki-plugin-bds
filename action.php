@@ -614,8 +614,70 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							echo '</table>';	
 						break;
 					}
+
+					if ( ! isset($_GET['rev'])) {
+						//the newest
+						$rev = -1;
+					} else {
+						$rev = (int)$_GET['rev'];
+						if ( ! isset($event['rev'][$rev])) {
+							$rev = -1;
+						}
+					}
+					
 					if (isset($event['content'])) {
-						echo $this->wiki_parse($event['content']);
+						if ( $rev == -1) {
+							echo $this->wiki_parse($event['content']);
+						} else {
+							echo $this->wiki_parse($event['rev'][$rev]['content']);
+						}
+					}
+					if (isset($event['rev'])) {
+						echo '<span>';
+							if ($rev == -1) {
+								echo $this->getLang('last_modified');
+								echo ' ';
+								echo $this->string_format_field('date', $event['date']);
+								echo ' ';
+								echo $this->getLang('by');
+								echo ' ';
+								echo $this->string_format_field('name', $event['author']);
+							} else {
+								echo $this->getLang('version');
+								echo ': ';
+								echo count($event['rev']) - $rev;
+								echo ' ';
+								echo lcfirst($this->getLang('last_modified'));
+								echo ' ';
+								echo $this->string_format_field('date', $event['rev'][$rev]['date']);
+								echo ' ';
+								echo $this->getLang('by');
+								echo ' ';
+								echo $this->string_format_field('name', $event['rev'][$rev]['author']);
+							}
+							
+							if (isset($event['rev'][$rev+1])) {
+							echo ' (';
+								echo '<a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&rev_ev_id='.$event['id'].'&rev='.($rev+1).'#'.$event['id'].'">';
+							echo $this->getLang('preview');
+							echo '</a>';
+							echo ')';
+							echo ' ';
+							}
+
+							if ($rev >= 0) {
+							echo ' ';
+							echo '(';
+								echo '<a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&rev_ev_id='.$event['id'].'&rev='.($rev-1).'#'.$event['id'].'">';
+							echo $this->getLang('next');
+							echo '</a>';
+							echo ')';
+							echo ' ';
+							}
+							echo ' (';
+							echo $this->getLang('diff');
+							echo ') ';
+						echo '</span>';
 					}
 				}
 			}
@@ -996,45 +1058,56 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							if ($issues == false) {
 								throw new MongoException('Cannto load issues.');
 							}
-							//$bds_edited_event;
-							if ( ! isset($bds_edited_event['rev'])) {
-								$bds_edited_event['rev'] = array();
-							}
-							$old_event = $bds_edited_event;
-							unset($old_event['rev']);
-
-							$post['last_mod_author'] = $INFO['client'];
-							$post['last_mod_date'] = time();
-							$post['quoted_in'] = $old_event['quoted_in']; 
-							$post['replay_to'] = $old_event['replay_to']; 
-
-							unset($old_event['quoted_in']);
-							unset($old_event['replay_to']);
-							unset($old_event['last_mod_date']);
-							unset($old_event['last_mod_author']);
-							unset($old_event['type']);
-							unset($old_event['id']);
-
-
-							array_unshift($bds_edited_event['rev'], $old_event);
-							$post['rev'] = $bds_edited_event['rev'];
-
-							$events = array();
+							//check if anything was changed
+							$any_changes = false;
 							foreach ($post as $k => $v) {
-								$events['events.$.'.$k] = $v;
+								if ($bds_edited_event[$k] != $v) {
+									$any_changes = true;
+									break;
+								}
 							}
 
-							$issues->update(array('_id' => $id, 'events.id' => $bds_event_id), array('$set' => $events)); 
 
-							$issue['last_mod_author'] = $INFO['client'];
-							$issue['last_mod_date'] = time();
-							$issues->update(array('_id' => $id), array('$set' => $issue)); 
+							if ($any_changes == true) {
+								//$bds_edited_event;
+								if ( ! isset($bds_edited_event['rev'])) {
+									$bds_edited_event['rev'] = array();
+								}
+								$old_event = $bds_edited_event;
+								unset($old_event['rev']);
 
+								$post['author'] = $INFO['client'];
+								$post['date'] = time();
+								$post['quoted_in'] = $old_event['quoted_in']; 
+								$post['replay_to'] = $old_event['replay_to']; 
 
+								unset($old_event['quoted_in']);
+								unset($old_event['replay_to']);
+								//unset($old_event['last_mod_date']);
+								//unset($old_event['last_mod_author']);
+								unset($old_event['type']);
+								unset($old_event['id']);
+
+								if ( ! isset($bds_edited_event['rev'])) {
+									$bds_edited_event['rev'] = array();
+								}
+								array_unshift($bds_edited_event['rev'], $old_event);
+								$post['rev'] = $bds_edited_event['rev'];
+
+								$events = array();
+								foreach ($post as $k => $v) {
+									$events['events.$.'.$k] = $v;
+								}
+
+								$issues->update(array('_id' => $id, 'events.id' => $bds_event_id), array('$set' => $events)); 
+
+								$issue['last_mod_author'] = $INFO['client'];
+								$issue['last_mod_date'] = time();
+								$issues->update(array('_id' => $id), array('$set' => $issue)); 
+							}
 							//redirecting 
 							$event->data = 'bds_issue_show';
 							$this->anchor = $bds_event_id;
-							var_dump($this->anchor);
 						} else {
 							$event->data ='bds_issue_show';
 						}
