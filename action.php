@@ -236,7 +236,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo $default['content'];
 		} elseif (isset($data['replay_to']) && !isset($_POST['content'])) {
 			echo $this->get_event_replay_content($cursor['_id'], (int) $data['replay_to']);
-		} else if (isset($_POST['content']) && count($this->vald_comment) > 0) {
+		} else if (isset($_POST['content']) && count($this->vald_comment) > 0 && $data['do'] == $_GET['do']) {
 			echo $_POST['content'];
 		}
 		echo '</textarea>';
@@ -259,9 +259,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 
 			if (isset($_POST['executor'])) {
-				$value['executor'] = $_POST['state'];
+				$value['executor'] = $_POST['executor'];
 			} elseif (isset($default['executor'])) {
-				$value['executor'] = $default['state'];
+				$value['executor'] = $default['executor'];
 			} else {
 				$value['executor'] = '';
 			}
@@ -553,6 +553,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					}
 					echo '<a href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$event['id'].'#'.$event['type'].'_form">'.$this->getLang('edit').'</a>';
 
+					if ( ! isset($_GET['rev'])) {
+						//the newest
+						$rev = -1;
+					} else {
+						$rev = (int)$_GET['rev'];
+						if ( ! isset($event['rev'][$rev])) {
+							$rev = -1;
+						}
+					}
+					
 					switch ($event['type']) {
 						case 'change':
 							echo '<ul>';
@@ -590,41 +600,54 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						case 'task':
 							echo '<table>';	
 							echo '<tr>';
-								echo '<th>';
-								echo $this->getLang('executor');
-								echo ':</th>';
-								echo '<td>';
-								echo $this->string_format_field('name', $event['executor']);
-								echo '</td>';
-								echo '<th>';
-								echo $this->getLang('class');
-								echo ':</th>';
-								echo '<td>';
-								echo $this->string_format_field('class', $event['class']);
-								echo '</td>';
-								if (isset($event['cost'])) {
+								if ($rev == -1) {
 									echo '<th>';
-									echo $this->getLang('cost');
+									echo $this->getLang('executor');
 									echo ':</th>';
 									echo '<td>';
-									echo $this->string_format_field('cost', $event['cost']);
+									echo $this->string_format_field('name', $event['executor']);
 									echo '</td>';
+									echo '<th>';
+									echo $this->getLang('class');
+									echo ':</th>';
+									echo '<td>';
+									echo $this->string_format_field('class', $event['class']);
+									echo '</td>';
+									if (isset($event['cost'])) {
+										echo '<th>';
+										echo $this->getLang('cost');
+										echo ':</th>';
+										echo '<td>';
+										echo $this->string_format_field('cost', $event['cost']);
+										echo '</td>';
+									}
+								} else {
+									echo '<th>';
+									echo $this->getLang('executor');
+									echo ':</th>';
+									echo '<td>';
+									echo $this->string_format_field('name', $event['rev'][$rev]['executor']);
+									echo '</td>';
+									echo '<th>';
+									echo $this->getLang('class');
+									echo ':</th>';
+									echo '<td>';
+									echo $this->string_format_field('class', $event['rev'][$rev]['class']);
+									echo '</td>';
+									if (isset($event['cost'])) {
+										echo '<th>';
+										echo $this->getLang('cost');
+										echo ':</th>';
+										echo '<td>';
+										echo $this->string_format_field('cost', $event['rev'][$rev]['cost']);
+										echo '</td>';
+									}
 								}
 							echo '</tr>';
 							echo '</table>';	
 						break;
 					}
 
-					if ( ! isset($_GET['rev'])) {
-						//the newest
-						$rev = -1;
-					} else {
-						$rev = (int)$_GET['rev'];
-						if ( ! isset($event['rev'][$rev])) {
-							$rev = -1;
-						}
-					}
-					
 					if (isset($event['content'])) {
 						if ( $rev == -1) {
 							echo $this->wiki_parse($event['content']);
@@ -735,7 +758,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						}
 					}
 				}
-				if ($ev_type == 'comment') {
+				if ($ev_type == 'comment' || $ev_type == 'change') {
 					$action = '?do=bds_issue_change_event&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$bds_event_id;
 					$this->html_generate_event_form($action, $cursor, 
 						array('submit' => $this->getLang('comment'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('change_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_event'), $ev_cursor);
@@ -747,6 +770,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 				if ($this->user_is_moderator() ) {
 					if ($ev_type == 'task') {
+						$action = '?do=bds_issue_change_task&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$bds_event_id;
+						$this->html_generate_event_form($action, $cursor, 
+							array('submit' => $this->getLang('add'), 'header' => array('name' => 'task_form', 'value' => $this->getLang('change_task')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_task'), $ev_cursor);
 					} else {
 						$action = '?do=bds_issue_add_task&bds_issue_id='.$cursor['_id'].'';
 						$this->html_generate_event_form($action, $cursor, 
@@ -810,8 +836,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_change':
 			case 'bds_issue_reopen':
 			case 'bds_issue_add_event':
-			case 'bds_issue_change_event':
 			case 'bds_issue_add_task':
+			case 'bds_issue_change_event':
+			case 'bds_issue_change_task':
 			case 'bds_issues':
 				$event->stopPropagation();
 				$event->preventDefault();
@@ -982,12 +1009,17 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 						if (count($cost_ex) > 2 || ! ctype_digit($cost_ex[0])) {
 							$this->vald_comment['cost'] = $this->getLang('vald_cost_wrong_format');
-						} elseif (isset($cost_ex[1]) && ! ctype_digit($cost_ex[1])) {
+						} elseif (isset($cost_ex[1]) && (strlen($cost_ex[1]) > 2 || ! ctype_digit($cost_ex[1]))) {
 							$this->vald_comment['cost'] = $this->getLang('vald_cost_wrong_format');
-						} elseif ( (int)implode('.', $cost) > (int)$this->getConf('cost_max')) {
+						} elseif ( (double)implode('.', $cost_ex) > (double)$this->getConf('cost_max')) {
 							$this->vald_comment['cost'] = str_replace('%d', $this->getConf('cost_max'), $this->getLang('vald_cost_too_big'));
 						} else {
-							$post['cost'] = $_POST['cost'];
+							if ( ! isset($cost_ex[1])) {
+								$cost .= ',00';
+							} else if (strlen($cost_ex[1]) == 1) {
+								$cost = $cost_ex[0].','.$cost_ex[1].'0';
+							}
+							$post['cost'] = $cost;
 						}
 					}
 
@@ -1067,7 +1099,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								}
 							}
 
-
 							if ($any_changes == true) {
 								//$bds_edited_event;
 								if ( ! isset($bds_edited_event['rev'])) {
@@ -1081,10 +1112,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								$post['quoted_in'] = $old_event['quoted_in']; 
 								$post['replay_to'] = $old_event['replay_to']; 
 
+								//in case of change
+								if (isset($old_event['new'])) {
+									$post['new'] = $old_event['new'];
+									unset($old_event['new']);
+								}
+								if (isset($old_event['prev'])) {
+									$post['prev'] = $old_event['prev'];
+									unset($old_event['prev']);
+								}
+
 								unset($old_event['quoted_in']);
 								unset($old_event['replay_to']);
-								//unset($old_event['last_mod_date']);
-								//unset($old_event['last_mod_author']);
 								unset($old_event['type']);
 								unset($old_event['id']);
 
@@ -1175,6 +1214,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 			//remember about event->data
 			$get['do'] = $event->data;
+			return;
 
 			//some special changes
 			if (count($this->vald_comment) == 0) {
