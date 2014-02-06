@@ -112,3 +112,7 @@ $lang['preview'] = 'starsze';
 $lang['next'] = 'nowsze';
 
 $lang['version'] = 'Wersja';
+
+$lang['comment_noun'] = 'Komentarz';
+$lang['change'] = 'Zmiana';
+$lang['task'] = 'Zadanie';
