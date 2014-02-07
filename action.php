@@ -157,10 +157,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 
 
-		var_dump($this->vald);
+		foreach ($this->vald as $error) {
+			echo '<div class="error">';
+			echo $error;
+			echo '</div>';
+		}
 
 		echo '<form action="'.$action.'" method="POST">';
+		echo '<filedset class="bds_form">';
+		echo '<div class="row">';
 		echo '<label for="type">'.$this->getLang('type').':</label>';
+
+		echo '<span>';
 		echo '<select name="type" id="type">';
 		foreach ($this->issue_types as $key => $name) {
 			echo '<option';
@@ -170,18 +178,32 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo ' value="'.$key.'">'.$name.'</opiton>';
 		}
 		echo '</select>';
+		echo '</span>';
+		echo '</div>';
+
+		echo '<div class="row">';
 		echo '<label for="title">'.$this->getLang('title').':</label>';
+		echo '<span>';
 		echo '<input name="title" id="title" value="'.$value['title'].'">';
+		echo '</span>';
+		echo '</div>';
+
+		echo '<div class="row">';
 		echo '<label for="description">'.$this->getLang('description').':</label>';
-		echo '<textarea name="description" id="description">';
+		echo '<span>';
+		echo '<textarea name="description" id="description" class="edit">';
 		echo $value['description'];
 		echo '</textarea>';
+		echo '</span>';
+		echo '</div>';
 
 		//edit case
 		if (count($default) > 0) {
 			if ($this->user_is_moderator()) {
 				$users = $auth->retrieveUsers();
+				echo '<div class="row">';
 				echo '<label for="coordinator">'.$this->getLang('coordinator').':</label>';
+				echo '<span>';
 				echo '<select name="coordinator" id="coordinator">';
 				foreach ($users as $key => $data) {
 					if ($this->user_is_moderator($key)) {
@@ -194,8 +216,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					}
 				}
 				echo '</select>';
+				echo '</span>';
+				echo '</div>';
 
+				echo '<div class="row">';
 				echo '<label for="state">'.$this->getLang('state').':</label>';
+				echo '<span>';
 				echo '<select name="state" id="state">';
 				foreach ($this->issue_states as $key => $state) {
 					echo '<option';
@@ -205,8 +231,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo ' value="'.$key.'">'.$state.'</opiton>';
 				}
 				echo '</select>';
+				echo '</span>';
+				echo '</div>';
+
 			}
 		}
+		echo '</filedset>';
+
 		echo '<input type="submit" value="'.$this->getLang('save').'">';
 		echo '</form>';
 	}
@@ -581,7 +612,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						echo '<a class="bds_inline_button" href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$event['id'].'#'.$event['type'].'_form">✎ '.$this->getLang('edit').'</a>';
 					}
 
-					if ( ! isset($_GET['rev'])) {
+					if (isset($_GET['rev_ev_id'])) {
+						$rev_ev_id = (int)$_GET['rev_ev_id'];
+					} else {
+						$rev_ev_id = -1;
+					}
+
+
+					if ( ! isset($_GET['rev']) || $rev_ev_id != $event['id']) {
 						//the newest
 						$rev = -1;
 					} else {
@@ -590,6 +628,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$rev = -1;
 						}
 					}
+
 					
 					switch ($event['type']) {
 						case 'change':

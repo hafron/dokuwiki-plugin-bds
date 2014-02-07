@@ -97,7 +97,7 @@
 
 #bds_history > div table {
 	clear:both;
-	border-top-color: #000;
+	border-top-color: #8bbcbc;
 	margin-top: 3em;
 }
 
@@ -110,7 +110,7 @@
 }
 
 #bds_history > div td, #bds_history > div th{
-	border-bottom-color: #000;
+	border-bottom-color: #8bbcbc;
 }
 
 .bds_inline_button {
@@ -147,4 +147,47 @@
 
 #bds_history li {
 	color: #000 !important;
+}
+
+/*FORMS*/
+.bds_form {
+	display: table;
+	background: none repeat scroll 0 0 #F7F7F0;
+    border: 1px solid #D7D7D7;
+    border-radius: 0.4em;
+    box-shadow: 0.1em 0.1em 1em 0 #E7E7E7 inset;
+    margin: 1em 0;
+	padding: 0.5em;
+}
+
+.bds_form .row {
+	display: table-row;
+}
+
+.bds_form label {
+	display: table-cell;
+    padding: 0.4em;
+    text-align: right;
+    vertical-align: top;
+    width: 20%;
+}
+.bds_form span {
+	display: table-cell;
+    vertical-align: middle;
+    width: 80%;
+}
+
+.bds_form input {
+	padding: 0.25em 0.5em;
+}
+
+.bds_form textarea {
+	width: 100%;
+	height: 10em;
+	display: block;
+}
+
+
+.bds_form input[id=title] {
+	width: 30em;
 }
