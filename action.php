@@ -249,10 +249,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		global $auth;
 	
 		$type = $data['header']['name'];
-		echo '<div class="bds_form" id="'.$data['header']['name'].'" class="bds_block"><h1>'.$data['header']['value'].'</h1>';
+
+		echo '<div class="bds_block" id="'.$type.'" class="bds_block">';
+		echo '<h1>'.$data['header']['value'].'</h1>';
 
 		if ($data['event'] == $data['do']) {
-			var_dump($this->vald_comment);
+			if (isset($this->vald_comment)) {
+				foreach($this->vald_comment as $error) {
+					echo '<div class="error">'.$error.'</div>';
+				}
+			}
 		}
 		$value = array();
 
@@ -260,8 +266,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$action .= '&replay_to='.$data['replay_to'];
 		}	
 		echo '<form action="'.$action.'#'.$data['header']['name'].'" method="POST">';
+		echo '<filedset class="bds_form">';
 		echo '<input type="hidden" name="event" value="comment">';
-		echo '<textarea name="content" id="content">';
+		echo '<div class="row">';
+		echo '<label for="content_'.$type.'">'.$this->getLang('description').':</label>';
+		echo '<span>';
+		echo '<textarea name="content" id="content_'.$type.'">';
 
 		if (isset($default['content']) && !isset($_POST['content'])) {
 			echo $default['content'];
@@ -271,6 +281,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo $_POST['content'];
 		}
 		echo '</textarea>';
+		echo '</span>';
+		echo '</div>';
 
 		if ($this->user_is_moderator() && $type == 'task_form') {
 			if (isset($_POST['state'])) {
@@ -305,7 +317,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				$value['cost'] = '';
 			}
 
+			echo '<div class="row">';
 			echo '<label for="executor">'.$this->getLang('executor').':</label>';
+			echo '<span>';
 			echo '<select name="executor" id="executor">';
 			$users = $auth->retrieveUsers();
 			foreach ($users as $key => $user_data) {
@@ -317,8 +331,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo ' value="'.$key.'">'.$name.'</opiton>';
 			}
 			echo '</select>';
+			echo '</span>';
+			echo '</div>';
 
+			echo '<div class="row">';
 			echo '<label for="class">'.$this->getLang('class').':</label>';
+			echo '<span>';
 			echo '<select name="class" id="class">';
 			foreach ($this->task_classes as $key => $name) {
 				echo '<option';
@@ -328,11 +346,19 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo ' value="'.$name.'">'.$name.'</opiton>';
 			}
 			echo '</select>';
+			echo '</span>';
+			echo '</div>';
 
+			echo '<div class="row">';
 			echo '<label for="cost">'.$this->getLang('cost').':</label>';
+			echo '<span>';
 			echo '<input name="cost" id="cost" value="'.$value['cost'].'">';
+			echo '</span>';
+			echo '</div>';
 
 		}
+
+		echo '</filedset>';
 		echo '<input type="submit" value="'.$data['submit'].'">';
 		echo '</form>';
 		echo '</div>';
@@ -542,7 +568,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '</div>';
 
 			echo '<div class="bds_block" id="bds_history">';
-			echo '<h1>'.$this->getLang('changes_history').'</h1>';
+			echo '<h1>'.$this->getLang('changes_history').' <span>('.count($cursor['events']).')</span></h1>';
 			if (isset($cursor['events'])) {
 				foreach ($cursor['events'] as $event) {
 					//create anchor
@@ -778,17 +804,24 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 			if (in_array($cursor['state'], $this->blocking_states)) {
 				echo '<div class="bds_block" id="bds_closed">';
-				echo '<p>';
+				echo '<div class="info">';
 				$com = str_replace('%d', $this->string_format_field('date', $cursor['last_mod_date']), $this->getLang('issue_closed'));
 				$com = str_replace('%u', $this->string_format_field('name', $cursor['last_mod_author']), $com);
 				echo $com;
-				echo '</p>';
+				echo '</div>';
 				if ($this->user_is_moderator()) {
 					echo '<h1>'.$this->getLang('reopen_issue').'</h1>';
 					$action = '?do=bds_issue_reopen&bds_issue_id='.$cursor['_id'].'';
-					var_dump($this->vald);
+					if (isset($this->vald)) {
+						foreach ($this->vald as $error) {
+							echo '<div class="error">'.$error.'</div>';
+						}
+					}
 					echo '<form action="'.$action.'" method="post">';
+					echo '<filedset class="bds_form">';
+					echo '<div class="row">';
 					echo '<label for="state">'.$this->getLang('state').':</label>';
+					echo '<span>';
 					echo '<select name="state" id="state">';
 					foreach ($this->issue_states as $key => $state) {
 						echo '<option';
@@ -798,7 +831,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						echo ' value="'.$key.'">'.$state.'</opiton>';
 					}
 					echo '</select>';
-					echo '<input type="submit" value="'.$this->getLang('save').'">';
+					echo '</span>';
+					echo '</div>';
+					echo '</filedset>';
+					echo '<input type="submit" value="'.$this->getLang('change_state_button').'">';
 					echo '</form>';
 					echo '</div>';
 
@@ -834,7 +870,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				if ($ev_type == 'comment') {
 					$action = '?do=bds_issue_change_event&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$bds_event_id;
 					$this->html_generate_event_form($action, $cursor, 
-						array('submit' => $this->getLang('comment'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('change_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_event'), $ev_cursor);
+						array('submit' => $this->getLang('change_comment_button'), 'header' => array('name' => 'comment_form', 'value' => $this->getLang('change_comment')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_event'), $ev_cursor);
 				} else {
 					$action = '?do=bds_issue_add_event&bds_issue_id='.$cursor['_id'].'';
 					$this->html_generate_event_form($action, $cursor, 
@@ -845,7 +881,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					if ($ev_type == 'task') {
 						$action = '?do=bds_issue_change_task&bds_issue_id='.$cursor['_id'].'&bds_event_id='.$bds_event_id;
 						$this->html_generate_event_form($action, $cursor, 
-							array('submit' => $this->getLang('add'), 'header' => array('name' => 'task_form', 'value' => $this->getLang('change_task')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_task'), $ev_cursor);
+							array('submit' => $this->getLang('change_task_button'), 'header' => array('name' => 'task_form', 'value' => $this->getLang('change_task')), 'event' => $_GET['do'], 'do' => 'bds_issue_change_task'), $ev_cursor);
 					} else {
 						$action = '?do=bds_issue_add_task&bds_issue_id='.$cursor['_id'].'';
 						$this->html_generate_event_form($action, $cursor, 
@@ -1308,7 +1344,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 			//remember about event->data
 			$get['do'] = $event->data;
-			return;
 
 			//some special changes
 			if (count($this->vald_comment) == 0) {

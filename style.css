@@ -60,6 +60,10 @@
 	margin: 1em 0;
 }
 
+.bds_block h1 span {
+	color:#999;
+}
+
 .bds_block h2 {
     border-bottom: 1px solid #D7D7D7;
     box-shadow: 0.1em 0.4em 0.7em 0 #F2F2F2;
@@ -190,4 +194,8 @@
 
 .bds_form input[id=title] {
 	width: 30em;
+}
+
+.bds_form input[id=cost] {
+	width: 7em;
 }

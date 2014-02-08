@@ -88,7 +88,7 @@ $lang['days'] = 'dn.';
 $lang['ago'] = 'temu';
 
 $lang['issue_closed'] = 'Działanie zostało zamknięte %d, przez %u, dalsze zmiany nie są już możliwe.';
-$lang['reopen_issue'] = 'Otwórz problem ponownie';
+$lang['reopen_issue'] = 'Zmień status problemu';
 $lang['add'] = 'Dodaj';
 
 $lang['class'] = 'Klasa';
@@ -106,7 +106,9 @@ $lang['replay_by_task'] = 'Odpowiedz zadaniem';
 $lang['change_made'] = 'Zmiana wprowadzona';
 
 $lang['change_comment'] = 'Zmodyfikuj komentarz';
+$lang['change_comment_button'] = 'Popraw komentarz';
 $lang['change_task'] = 'Zmodyfikuj zadanie';
+$lang['change_task_button'] = 'Zmień zadanie';
 
 $lang['preview'] = 'starsze';
 $lang['next'] = 'nowsze';
@@ -116,3 +118,5 @@ $lang['version'] = 'Wersja';
 $lang['comment_noun'] = 'Komentarz';
 $lang['change'] = 'Zmiana';
 $lang['task'] = 'Zadanie';
+
+$lang['change_state_button'] = 'Zmień status';
