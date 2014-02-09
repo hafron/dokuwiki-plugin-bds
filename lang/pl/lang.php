@@ -1,8 +1,9 @@
 <?php
 
 $lang['bds'] = 'Baza Doskonalenia Systemu';
-$lang['bds_main'] = 'BDS';
-$lang['bds_issues'] = 'Problemy';
+$lang['bds_short'] = 'BDS';
+$lang['bds_timeline'] = 'Historia';
+$lang['bds_issues'] = 'Problemy i zadania';
 $lang['bds_issue_report'] = 'Zgłoś problem';
 $lang['bds_reports'] = 'Raporty';
 
@@ -21,6 +22,7 @@ $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 
 $lang['opinion'] = 'Ocena skuteczności';
+$lang['root_cause'] = 'Przyczyna źródłowa';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';

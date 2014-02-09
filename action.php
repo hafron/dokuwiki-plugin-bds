@@ -286,6 +286,29 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '<form action="'.$action.'#'.$data['header']['name'].'" method="POST">';
 		echo '<filedset class="bds_form">';
 		echo '<input type="hidden" name="event" value="comment">';
+
+		if ($type == 'comment_form') {
+	
+			if (isset($_POST['root_cause'])) {
+				$value['root_cause'] = 1;
+			} elseif (isset($default['root_cause'])) {
+				$value['root_cause'] = (int)$default['root_cause'];
+			} else {
+				$value['root_cause'] = 0;
+			}	
+
+			echo '<div class="row">';
+			echo '<label for="root_cause">'.$this->getLang('root_cause').':</label>';
+			echo '<span>';
+			echo '<input type="checkbox" name="root_cause" id="root_cause"';
+				if ($value['root_cause'] == 1) {
+					echo ' checked ';
+				}
+			echo '>';
+			echo '</span>';
+			echo '</div>';
+		}
+
 		echo '<div class="row">';
 		echo '<label for="content_'.$type.'">'.$this->getLang('description').':</label>';
 		echo '<span>';
@@ -508,7 +531,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 
-	private function _handle_main() {
+	private function _handle_timeline() {
+		echo '<h1>'.$this->getLang('timeline').'</h1>';
 		return true;
 	}
 	private function _handle_issue_report() {
@@ -781,6 +805,20 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						break;
 					}
 
+					if ( $rev == -1) {
+						$root_cause = $event['root_cause'];
+					} else {
+						$root_cause = $event['rev'][$rev]['root_cause'];
+					}
+
+					if (isset($root_cause) && $root_cause == 1) {
+						echo '<div class="root_cause">';
+						echo '<span>';
+						echo lcfirst($this->getLang('root_cause'));
+						echo '</span>';
+						echo '</div>';
+					}
+
 					if (isset($event['content'])) {
 						if ( $rev == -1) {
 							echo $this->wiki_parse($event['content']);
@@ -995,7 +1033,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return false;
 		}
 		switch($event->data) {
-			case 'bds_main':
+			case 'bds_timeline':
 			case 'bds_issue_report':
 			case 'bds_issue_show':
 			case 'bds_issue_add':
@@ -1036,6 +1074,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				if (strlen($_POST['description']) == 0) {
 					$this->vald['description'] = $this->getLang('vald_desc_required');
 				} else if (strlen($_POST['description']) > $this->getConf('desc_max_len')) {
+
 					$this->vald['description'] = str_replace('%d', $this->getConf('desc_max_len'), $this->getLang('vald_desc_too_long'));
 				} else {
 					$post['description'] = $_POST['description'];
@@ -1243,6 +1282,15 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				} else {
 					$post['content'] = $_POST['content'];
 				}
+
+				if ($event->data == 'bds_issue_add_event' || $event->data == 'bds_issue_change_event') {
+					if (isset($_POST['root_cause'])) {
+						$post['root_cause'] = 1;
+					} else {
+						$post['root_cause'] = 0;
+					}
+				}
+
 				
 				try {
 
@@ -1439,7 +1487,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return false;
 		}
 		switch ($event->data) {
-			case 'bds_main':
+			case 'bds_timeline':
 			case 'bds_issue_report':
 			case 'bds_issue_show':
 			case 'bds_issues':
@@ -1449,8 +1497,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				break;
 		}
 		switch ($event->data) {
-			case 'bds_main':
-				$this->_handle_main();
+			case 'bds_timeline':
+				$this->_handle_timeline();
 				break;
 			case 'bds_issue_report':
 				$this->_handle_issue_report();
@@ -1481,22 +1529,21 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return false;
 		}
 
-		$lang['btn_bds_main'] = $this->getLang('bds_main');
+		$lang['btn_bds_timeline'] = $this->getLang('bds_timeline');
 		$lang['btn_bds_issues'] = $this->getLang('bds_issues');
 
 		if ($this->user_can_edit()) {
 			$lang['btn_bds_issue_report'] = $this->getLang('bds_issue_report');
 		}
-		$lang['btn_bds_reports'] = $this->getLang('bds_reports');
 
-		$event->data['items']['separator'] = '<li>|</li>';
+		$event->data['items']['separator'] = '<li style="display:block;float:left;">&nbsp;</li>';
+		$event->data['items']['bds'] = '<li><strong>'.$this->getLang('bds_short').':</strong></li>';
 
-		$event->data['items']['bds_main'] = tpl_action('bds_main', 1, 'li', 1);
+		$event->data['items']['bds_timeline'] = tpl_action('bds_timeline', 1, 'li', 1);
 		$event->data['items']['bds_issues'] = tpl_action('bds_issues', 1, 'li', 1);
 		if ($this->user_can_edit()) {
 			$event->data['items']['bds_issue_report'] = tpl_action('bds_issue_report', 1, 'li', 1);
 		}
-		$event->data['items']['bds_reports'] = tpl_action('bds_reports', 1, 'li', 1);
 	}
 	public function add_action(&$event, $param) {
 		if ( ! $this->user_can_view()) {
@@ -1505,10 +1552,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$data = &$event->data;
 
 		switch($data['type']) {
-			case 'bds_main':
+			case 'bds_timeline':
 			case 'bds_issues':
 			case 'bds_issue_report':
-			case 'bds_reports':
 				$event->preventDefault();
 		}
 

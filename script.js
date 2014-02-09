@@ -62,7 +62,7 @@ jQuery(function() {
 					'color': '#222222',
 					'padding': '0.3em 0.5em 0.3em 20px',
 					'text-shadow': '0.1em 0.1em #FCFCFC',
-					'cursor': 'default'
+					'cursor': 'pointer'
 				});
 
 			var show = function() {
