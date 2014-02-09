@@ -1,5 +1,4 @@
 <?php
-
 $lang['bds'] = 'Baza Doskonalenia Systemu';
 $lang['bds_short'] = 'BDS';
 $lang['bds_timeline'] = 'Historia';
@@ -127,3 +126,18 @@ $lang['change'] = 'Zmiana';
 $lang['task'] = 'Zadanie';
 
 $lang['change_state_button'] = 'Zmień status';
+
+
+$lang['correction'] = 'Korekcja';
+$lang['corrective_action'] = 'Działania korygujące';
+$lang['preventive_action'] = 'Działania zapobiegawcze';
+
+$lang['none_comment'] = 'brak(komentarz)';
+$lang['manpower'] = 'Ludzie';
+$lang['method'] = 'Metoda';
+$lang['machine'] = 'Maszyna';
+$lang['material'] = 'Materiał';
+$lang['managment'] = 'Zarządzanie';
+$lang['measurement'] = 'Pomiar';
+$lang['money'] = 'Pieniądze';
+$lang['environment'] = 'Środowisko';

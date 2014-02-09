@@ -17,6 +17,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private $issue_types = array();
 	private $event_types = array();
 	private $task_classes = array();
+	private $root_causes = array();
 	private $blocking_states = array();
 
 	private $anchor = '';
@@ -35,8 +36,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handle_act_unknown');
 	}
 	public function __construct() {
-		$this->issue_types[0] = $this->getLang('type_client_complaint');
-		$this->issue_types[1] = $this->getLang('type_noneconformity');
+		$this->issue_types[0] = $this->getLang('type_noneconformity');
+		$this->issue_types[1] = $this->getLang('type_client_complaint');
 		$this->issue_types[2] = $this->getLang('type_supplier_complaint');
 
 		$this->issue_states[0] = $this->getLang('state_proposal');
@@ -45,11 +46,19 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$this->issue_states[3] = $this->getLang('state_effective');
 		$this->issue_states[4] = $this->getLang('state_ineffective');
 
-		$this->task_classes = array();
-		$classes_ex = explode(',', $this->getConf('task_classes'));
-		foreach ($classes_ex as $class) {
-			$this->task_classes[] = trim($class);
-		}
+		$this->task_classes[0] = $this->getLang('correction');
+		$this->task_classes[1] = $this->getLang('corrective_action');
+		$this->task_classes[2] = $this->getLang('preventive_action');
+
+		$this->root_causes[0] = $this->getLang('none_comment');
+		$this->root_causes[1] = $this->getLang('manpower');
+		$this->root_causes[2] = $this->getLang('method');
+		$this->root_causes[3] = $this->getLang('machine');
+		$this->root_causes[4] = $this->getLang('material');
+		$this->root_causes[5] = $this->getLang('managment');
+		$this->root_causes[6] = $this->getLang('measurement');
+		$this->root_causes[7] = $this->getLang('money');
+		$this->root_causes[8] = $this->getLang('environment');
 
 		$this->blocking_states = array(2, 3, 4);
 
@@ -290,21 +299,25 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		if ($type == 'comment_form') {
 	
 			if (isset($_POST['root_cause'])) {
-				$value['root_cause'] = 1;
+				$value['root_cause'] = $_POST['root_cause'];
 			} elseif (isset($default['root_cause'])) {
-				$value['root_cause'] = (int)$default['root_cause'];
+				$value['root_cause'] = $default['root_cause'];
 			} else {
-				$value['root_cause'] = 0;
-			}	
+				$value['root_cause'] = '';
+			}
 
 			echo '<div class="row">';
 			echo '<label for="root_cause">'.$this->getLang('root_cause').':</label>';
 			echo '<span>';
-			echo '<input type="checkbox" name="root_cause" id="root_cause"';
-				if ($value['root_cause'] == 1) {
-					echo ' checked ';
+			echo '<select name="root_cause" id="root_cause">';
+			foreach ($this->root_causes as $key => $name) {
+				echo '<option';
+				if ($value['root_cause'] == $key) {
+					echo ' selected';
 				}
-			echo '>';
+				echo ' value="'.$key.'">'.$name.'</opiton>';
+			}
+			echo '</select>';
 			echo '</span>';
 			echo '</div>';
 		}
@@ -811,10 +824,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						$root_cause = $event['rev'][$rev]['root_cause'];
 					}
 
-					if (isset($root_cause) && $root_cause == 1) {
+					if (isset($root_cause) && $root_cause != 0) {
 						echo '<div class="root_cause">';
 						echo '<span>';
 						echo lcfirst($this->getLang('root_cause'));
+						echo ': ';
+						echo '<strong>';
+						echo $this->root_causes[$root_cause];
+						echo '</strong>';
 						echo '</span>';
 						echo '</div>';
 					}
@@ -1284,10 +1301,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				}
 
 				if ($event->data == 'bds_issue_add_event' || $event->data == 'bds_issue_change_event') {
-					if (isset($_POST['root_cause'])) {
-						$post['root_cause'] = 1;
-					} else {
+					if ( ! array_key_exists((int)$_POST['root_cause'], $this->root_causes)) {
 						$post['root_cause'] = 0;
+					} else {
+						$post['root_cause'] = (int)$_POST['root_cause'];
 					}
 				}
 

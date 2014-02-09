@@ -205,12 +205,5 @@
 }
 .root_cause span {
 	background: #ffeedc;
-	font-weight:bold;
 	padding: 0.5em;
-}
-.root_cause span:before {
-	content: '[';
-}
-.root_cause span:after {
-	content: ']';
 }

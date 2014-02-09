@@ -5,4 +5,3 @@ $meta['date_format'] = array('string');
 $meta['numbers_separator'] = array('string');
 $meta['fractional_separator'] = array('string');
 $meta['cost_max'] = array('numeric', '_min' => 0);
-$meta['task_classes'] = array('');

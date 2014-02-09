@@ -6,4 +6,3 @@ $conf['date_format'] = 'Y-m-d';
 $conf['numbers_separator'] = '.';	
 $conf['fractional_separator'] = ',';
 $conf['cost_max'] = 1000000000;
-$conf['task_classes'] = 'human failure, machine failure';
