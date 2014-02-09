@@ -90,22 +90,22 @@
 	content: "↑ ";	
 }
 
-#bds_history > div {
+#bds_history .bds_block_content > div {
 	margin-bottom: 3em;
 }
 
-#bds_history > div table {
+#bds_history table {
 	clear:both;
 	margin-top: 3em;
 }
 
-#bds_history > div table {
+#bds_history table {
 	clear:both;
 	border-top-color: #8bbcbc;
 	margin-top: 3em;
 }
 
-#bds_history > div.task {
+#bds_history div.task {
 	background: #e4f4f4;
 	border: 1px solid #8bbcbc;
 	border-radius: 0.4em;
@@ -113,7 +113,7 @@
 	padding: 0.5em 1em;
 }
 
-#bds_history > div td, #bds_history > div th{
+#bds_history td, #bds_history th{
 	border-bottom-color: #8bbcbc;
 }
 

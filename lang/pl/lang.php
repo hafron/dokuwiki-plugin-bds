@@ -20,6 +20,8 @@ $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 
+$lang['opinion'] = 'Ocena skuteczności';
+
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
 $lang['reported_by'] = 'zgłoszona przez';
@@ -58,7 +60,10 @@ $lang['vald_executor_required'] = 'Musisz wybrać istniejącego użytkownika alb
 $lang['vald_coordinator_required'] = 'Koordynator musi być jednocześnie moderatorem BDSa.';
 
 $lang['vald_desc_required'] = 'Musisz podać opis problemu.';
-$lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długość opisu wynosi: %d.';
+$lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długość opisu wynosi: %d znaków.';
+$lang['vald_opinion_too_long'] = 'Ocena skuteczności jest za długa. Maksymalna długość tego pola wynosi: %d znaków.';
+$lang['vald_cannot_give_opinion'] = 'Nie możesz dodać oceny skuteczności jeżeli problem pozostanie otwarty.';
+
 
 $lang['vald_content_required'] = 'Musisz wprowadzić jakąś treść.';
 $lang['vald_content_too_long'] = 'Treść jest za długa. Maksymalna długość wynosi: %d.';
