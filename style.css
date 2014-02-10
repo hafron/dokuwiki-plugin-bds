@@ -74,6 +74,11 @@
     padding: 0 0.2em;
 }
 
+.bds_block h3 {
+    border-bottom: 1px dotted #8bbcbc;
+    font-size: 90%;
+}
+
 #bds_history h2 span {
 	display:block;
 	float:right;

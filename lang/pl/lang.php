@@ -44,6 +44,7 @@ $lang['diff'] = 'różnice';
 $lang['comment'] = 'Skomentuj';
 $lang['replay'] = 'Odpowiedz';
 $lang['edit'] = 'Edytuj';
+$lang['change_task_state'] = 'Zmień status zadania';
 $lang['replay_to'] = 'Odpowiedź na';
 $lang['quoted_in'] = 'Odpowiedzi';
 
@@ -64,12 +65,16 @@ $lang['vald_desc_required'] = 'Musisz podać opis problemu.';
 $lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długość opisu wynosi: %d znaków.';
 $lang['vald_opinion_too_long'] = 'Ocena skuteczności jest za długa. Maksymalna długość tego pola wynosi: %d znaków.';
 $lang['vald_cannot_give_opinion'] = 'Nie możesz dodać oceny skuteczności jeżeli problem pozostanie otwarty.';
+$lang['vald_cannot_give_reason'] = 'Nie możesz podać powodu zmiany statusu zadania, jeżeli zadanie nie zmieni statusu.';
 
 
 $lang['vald_content_required'] = 'Musisz wprowadzić jakąś treść.';
 $lang['vald_content_too_long'] = 'Treść jest za długa. Maksymalna długość wynosi: %d.';
 $lang['vald_replay_to_not_exists'] = 'Element historii na który próbujesz odpowiedzieć nie istnieje.';
 $lang['vald_state_required'] = 'Musisz podać status problemu.';
+
+$lang['vald_task_state_required'] = 'Zadanie musi mieć określony status.';
+$lang['vald_task_state_tasks_not_closed'] = 'Nie możesz zamykać problemu do póki nie pozamykasz wszystkich zadań. Otwarte zadania: %t.';
 
 $lang['vald_executor_not_exists'] = 'Użytkownik podany jako wykonawca nie istnieje.';
 $lang['vald_cost_too_big'] = 'Koszt jest duży. Maksymalny koszt wynosi: %d';
@@ -104,6 +109,9 @@ $lang['closed'] = 'Zamknięte';
 
 $lang['cost'] = 'Koszt(zł)';
 $lang['executor'] = 'Wykonawca';
+
+$lang['task_state'] = 'Status';
+$lang['reason'] = 'Powód zmiany statusu';
 
 $lang['task_added'] = 'Zadanie dodane';
 $lang['comment_added'] = 'Komentarz dodany';
@@ -141,3 +149,11 @@ $lang['managment'] = 'Zarządzanie';
 $lang['measurement'] = 'Pomiar';
 $lang['money'] = 'Pieniądze';
 $lang['environment'] = 'Środowisko';
+
+$lang['task_opened'] = 'Otwarte';
+$lang ['task_done'] = 'Wykonane';
+$lang ['task_rejected'] = 'Odrzucone';
+
+$lang['reason_reopen'] = 'Przyczyna ponownego otwarcia'; 
+$lang['reason_done']  = 'Przyczyna zakończenia';
+$lang['reason_reject'] = 'Przyczyna odrzucenia';

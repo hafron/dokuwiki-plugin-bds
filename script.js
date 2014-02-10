@@ -12,7 +12,7 @@ bds.gup = function (name) {
 };
 
 jQuery(function() {
-	var ids = ['description', 'content_comment_form', 'content_task_form', 'opinion'];
+	var ids = ['description', 'content_comment_form', 'content_task_form', 'opinion', 'reason'];
 
 	for (var i = 0; i < ids.length; i++) {
 		var textarea = jQuery("#" + ids[i]);
@@ -29,8 +29,20 @@ jQuery(function() {
 	$opinion_row = jQuery("#bds_change_issue textarea[name=opinion]").parents("div[class=row]");
 	
 	if ($opinion_row.length > 0) {
-		$opinion_row.hide();
-		jQuery("#bds_change_issue select[name=state]").change(function() {
+		var $select = jQuery("#bds_change_issue select[name=state]"); 
+		switch ($select.val()) {
+			case "0":
+			case "1":
+				$opinion_row.hide();
+			break;
+
+			case "2":
+			case "3":
+			case "4":
+				$opinion_row.show();
+			break;
+		}
+		$select.change(function() {
 			switch (jQuery(this).val()) {
 				case "0":
 				case "1":
@@ -45,6 +57,32 @@ jQuery(function() {
 			}
 		});
 	}
+
+	//show/hide reason
+	$reason_row = jQuery("#task_form textarea[name=reason]").parents("div[class=row]");
+	
+	if ($reason_row.length > 0) {
+		$reason_row.hide();
+		$select = jQuery("#task_form select[name=state]")
+		var prev_val = $select.val();
+		$select.change(function() {
+			if (jQuery(this).val() === prev_val) {
+				$reason_row.hide();
+			} else {
+				$reason_row.show();
+			}
+		});
+	}
+
+	var show = function() {
+			console.log(this);
+			jQuery(this).siblings(".bds_block_content").show();
+			jQuery(this).find(".toggle").css("background-image", "url(lib/plugins/bds/images/expanded.png)");
+		};
+	var hide = function() {
+			jQuery(this).siblings(".bds_block_content").hide();
+			jQuery(this).find(".toggle").css("background-image", "url(lib/plugins/bds/images/collapsed.png)");
+		};
 
 	jQuery(".bds_block")
 		.each(function() {
@@ -65,15 +103,6 @@ jQuery(function() {
 					'cursor': 'pointer'
 				});
 
-			var show = function() {
-					console.log(this);
-					jQuery(this).siblings(".bds_block_content").show();
-					jQuery(this).find(".toggle").css("background-image", "url(lib/plugins/bds/images/expanded.png)");
-				};
-			var hide = function() {
-					jQuery(this).siblings(".bds_block_content").hide();
-					jQuery(this).find(".toggle").css("background-image", "url(lib/plugins/bds/images/collapsed.png)");
-				};
 
 			var showed = "bds_history";
 			var hash = window.location.hash.substring(1);
@@ -93,4 +122,7 @@ jQuery(function() {
 				jQuery(this).find("h1").toggle(show, hide);
 			}
 		});
+	jQuery(".bds_block .history_anchor").click(function() {
+		show.call(jQuery("#bds_history h1")[0]);
+	});
 });
