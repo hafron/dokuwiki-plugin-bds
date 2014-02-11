@@ -157,3 +157,4 @@ $lang ['task_rejected'] = 'Odrzucone';
 $lang['reason_reopen'] = 'Przyczyna ponownego otwarcia'; 
 $lang['reason_done']  = 'Przyczyna zakończenia';
 $lang['reason_reject'] = 'Przyczyna odrzucenia';
+

@@ -460,6 +460,17 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '</div>';
 	}
 
+	private function string_issue_href($issue, $event=false, $rev=false) {
+		$link = '?do=bds_issue_show&bds_issue_id='.$issue;
+		if ($event !== false) {
+			if ($rev !== false) {
+				$link .= '&rev_ev_id='.$event.'&rev='.$rev;
+			}
+			$link .= '#'.$event;
+		}
+		return $link;
+	}
+
 	private function html_issue_link($id) {
 		return '<a href="?do=bds_issue_show&bds_issue_id='.$id.'">#'.$id.'</a>';
 	}
@@ -578,7 +589,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		if ($this->mongo == NULL) {
 			try {
 				$m = new MongoClient();
-				$this->mongo = $m->bds;
+				$this->mongo = $m->selectDB("bds");
+				return $this->mongo;
 			} catch (MongoException $e) {
 				//"action_plugin_bds:__construct: MongoDB: Cannot connect with 'bds' collection."
 				return false;
@@ -595,9 +607,151 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return $bds->issues;
 		}
 	}
+	private function timeline() {
+		$bds = $this->bds();
+		if ($bds == false) {
+			return false;
+		} else {
+			return $bds->timeline;
+		}
+	}
 
+	function html_timeline_date_header($date) {
+		echo '<h2>';
+		echo date($this->getConf('date_format'), $date);
+		echo ':';
+		echo '</h2>';
+	}
 	private function _handle_timeline() {
-		echo '<h1>'.$this->getLang('timeline').'</h1>';
+		try {
+			//this should be cached somehow
+			$map = new MongoCode('function() {
+				var values = {
+					type: "issue_created",
+					date: this.date,
+					info: {title: this.title, description: this.description}
+				};
+				//this -> cursor
+				var event_info = function(type) {
+					switch(type) {
+						case "comment":
+							return {content: this.content}
+					}
+				}
+				emit(this._id, values);
+				for (ev in this.events) {
+					var evo = this.events[ev];
+					var type = evo["type"];
+					if (evo["rev"]) {
+						for (rev_id in evo["rev"]) {
+							var rev = evo["rev"][rev_id];
+							if (rev_id+1 == evo.rev.length) {
+								var sub_type = type;
+							} else {
+								var sub_type = type+"_rev";
+							}
+							var values = {
+								type: sub_type,
+								date: rev["last_mod_date"]
+							};
+							emit(this._id+":"+evo["id"]+":"+rev_id, values);
+						}
+						type += "_rev";
+					} 
+					var values = {
+						type: type,
+						date: evo["date"],
+						info: event_info.call(evo, type)
+					};
+					emit(this._id+":"+this.events[ev]["id"], values);
+				}
+			}');
+			$reduce = new MongoCode('function(key, value) {
+				var result = {
+					type: value[0]["type"],
+					date: value[0]["date"],
+					info: value[0]["info"]
+				};
+				return result;
+			}');
+			$timeline = $this->bds()->command(array(
+						'mapreduce' => 'issues',
+						'map' => $map,
+						'reduce' => $reduce,
+						'out' => array('merge' => 'timeline')));
+			$line = $this->timeline()->find()->sort(array('value.date' => -1));
+		} catch (MongoException $e) {
+			var_dump($e);
+			$this->error = 'error_timeline_show';
+			$this->_handle_error($this->getLang($this->error));
+			return true;
+		}
+		echo '<h1>'.$this->getLang('bds_timeline').'</h1>';
+		echo '<div id="bds_timeline">';
+		$date = mktime(0, 0, 0);
+		$this->html_timeline_date_header($date);
+		foreach ($line as $id => $val) {
+			$cursor = $val['value'];
+
+			if ($cursor['date'] < $date) {
+				$date -= 24*60*60;
+				$this->html_timeline_date_header($date);
+			}
+
+			echo '<div class="timeline_elm '.$cursor['type'].'" >';
+			$aid = explode(':', $id);
+			switch($cursor['type']) {
+				case 'comment':
+					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
+				break;
+				case 'comment_rev':
+					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1], $aid[2]).'">';
+				break;
+				case 'issue_created':
+					echo '<a href="'.$this->string_issue_href($aid[0]).'">';
+				break;
+				default:
+					echo '<a href="#">';
+				break;
+			}
+			echo '<span>';
+			echo date('H:i', $cursor['date']);
+			echo '</span>';
+			echo ' ';
+			switch($cursor['type']) {
+				case 'comment':
+					echo $this->getLang('comment_added');
+					echo ' ';
+					echo '#'.$aid[0].':'.$aid[1];
+					echo '</a>';
+					echo '<div class="content">';
+					echo $cursor['info']['content'];
+					echo '</div>';
+
+				break;
+				case 'comment_rev':
+					echo '</a>';
+				break;
+				case 'issue_created':
+					echo '(';
+					echo $cursor['info']['title'];
+					echo ')';
+					echo ' ';
+					echo $this->getLang('by');
+					echo ' ';
+
+					echo '</a>';
+					echo '<div class="content">';
+					echo $this->wiki_parse($cursor['info']['description']);
+					echo '</div>';
+				break;
+				default:
+					echo '</a>';
+				break;
+			}
+			echo '</div>';
+		}
+		echo '</div>';
 		return true;
 	}
 	private function _handle_issue_report() {
