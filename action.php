@@ -684,7 +684,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					var evo = this.events[ev];
 					var type = evo.type;
 					var id = this._id+":"+evo.id; 
-					if (type === "comment") {
+					if (type === "comment" || type === "task") {
 						if (evo.rev) {
 							for (rev_id = 0; rev_id < evo.rev.length; rev_id++) {
 								var rev = evo.rev[rev_id];
@@ -695,6 +695,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									var sub_type = type+"_rev";
 									var info = {content: rev.content, rev_len: evo.rev.length}
 								}
+								if (type === "task") {
+									info.executor = rev.executor;
+									info.cost = rev.cost;
+									info.class = rev.class;
+									info.state = rev.state;
+								}
 								var values = {
 									type: sub_type,
 									date: rev.last_mod_date,
@@ -704,6 +710,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								};
 								emit(this._id+":"+evo.id+":"+rev_id, values);
 							}
+
+							var info = {content: evo.content, rev_len: evo.rev.length};
+							if (type === "task") {
+								info.executor = rev.executor;
+								info.cost = rev.cost;
+								info.class = rev.class;
+								info.state = rev.state;
+							}
 							type += "_rev";
 							id += ":"+"-1";
 							var values = {
@@ -711,16 +725,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								date: evo.last_mod_date,
 								author: evo.last_mod_author,
 								title: this.title, 
-								info: {content: evo.content, rev_len: evo.rev.length}
+								info: info
 							};
 							emit(id, values);
 						} else {
+							var info = {content: evo.content};
+							if (type === "task") {
+								info.executor = evo.executor;
+								info.cost = evo.cost;
+								info.class = evo.class;
+								info.state = evo.state;
+							}
 							var values = {
 								type: type,
 								date: evo.date,
 								author: evo.author,
 								title: this.title, 
-								info: {content: evo.content}
+								info: info
 							};
 							emit(id, values);
 						}
@@ -789,9 +810,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			switch($cursor['type']) {
 				case 'comment':
 				case 'change':
+				case 'task':
 					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
 				break;
 				case 'comment_rev':
+				case 'task_rev':
 					if ($aid[2] == -1) {
 						echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
 					} else {
@@ -814,7 +837,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo ' ';
 			switch($cursor['type']) {
 				case 'comment':
-					echo $this->getLang('comment_added');
+				case 'task':
+					if ($cursor['type'] == 'task') {
+						echo $this->getLang('task_added');
+					} else {
+						echo $this->getLang('comment_added');
+					}
+					echo ' ';
 					echo '<span class="id">';
 					echo '#'.$aid[0].':'.$aid[1];
 					echo '</span>';
@@ -822,6 +851,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '(';
 					echo $cursor['title'];
 					echo ')';
+					echo ' ';
+					echo $this->getLang('by');
+					echo ' ';
+					echo '<span class="author">';
+					echo $this->string_format_field('name', $cursor['author']);
+					echo '</span>';
 					echo '</a>';
 					echo '</dt>';
 					echo '<dd>';

@@ -255,16 +255,23 @@
 #bds_timeline dt .author {
     color: #666666;
 }
-#bds_timeline a {
+#bds_timeline dt > a {
 	background: url('images/changeset.png') no-repeat 1px 4px;
 }
 
-#bds_timeline .issue_closed a {
+#bds_timeline .issue_closed > a {
 	background: url('images/closedticket.png') no-repeat 1px 4px;
 }
 
-#bds_timeline .issue_created a {
+#bds_timeline .issue_created > a {
 	background: url('images/newticket.png') no-repeat 1px 4px;
 }
 
 	
+#bds_timeline .task > a {
+	background: url('images/newtask.png') no-repeat 1px 4px;
+}
+
+#bds_timeline .task_closed > a {
+	background: url('images/closedtask.png') no-repeat 1px 4px;
+}
