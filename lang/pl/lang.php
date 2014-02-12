@@ -91,6 +91,7 @@ $lang['state_rejected'] = 'odrzucona';
 $lang['state_effective'] = 'skutecznie zamknięta';
 $lang['state_ineffective'] = 'nieskutecznie zamknięta';
 
+
 $lang['just_now'] = 'przed chwilą';
 $lang['seconds'] = 'sek.';
 $lang['minutes'] = 'min.';
@@ -161,3 +162,8 @@ $lang['reason_reject'] = 'Przyczyna odrzucenia';
 
 $lang['issue_created'] = 'Utworzono zgłoszenie';
 
+$lang['issue_closed'] = 'Zamknięto problem';
+$lang['issue_reopened'] = 'Ponownie otwarto problem';
+
+$lang['today'] = 'Dzisiaj';
+$lang['yesterday'] = 'Wczoraj';

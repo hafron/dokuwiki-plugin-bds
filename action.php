@@ -616,10 +616,56 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 
+	function html_format_change($new, $prev, $diff=array()) {
+		$out = '<ul>';
+		foreach($new as $field => $new) {
+			if (in_array($field, $diff))
+				continue;
+
+			$out .= '<li>';
+			$out .= '<strong>';
+			$out .= $this->getLang($field);
+			$out .= '</strong>';
+			$out .= ' ';
+			if ($field == 'description' || $field == 'opinion') {
+				$out .= $this->getLang('modified');
+				$out .= '(';
+				$out .= $this->getLang('diff');
+				$out .= ')';
+			} else {
+				$out .= ' ';
+				$out .= $this->getLang('changed_field');
+				$out .= ' ';
+				$out .= $this->getLang('from');
+				$out .= ' ';
+				$out .= '<em>';
+				$out .= $this->string_format_field($field, $prev[$field]);
+				$out .= '</em>';
+				$out .= ' ';
+				$out .= $this->getLang('to');
+				$out .= ' ';
+				$out .= '<em>';
+				$out .= $this->string_format_field($field, $new);
+				$out .= '</em>';
+			}
+			$out .= '</li>';
+		}
+		$out .= '</ul>';
+
+		return $out;
+	}
+
 	function html_timeline_date_header($date) {
 		echo '<h2>';
 		echo date($this->getConf('date_format'), $date);
 		echo ':';
+		if (date('Ymd') == date('Ymd', $date)) {
+			echo ' ';
+			echo $this->getLang('today');
+		} elseif (date('Ymd', strtotime("-1 days")) == date('Ymd', $date)) {
+			echo ' ';
+			echo $this->getLang('yesterday');
+		}
 		echo '</h2>';
 	}
 	private function _handle_timeline() {
@@ -630,55 +676,72 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					type: "issue_created",
 					date: this.date,
 					author: this.reporter,
-					info: {title: this.title, description: this.description}
+					title: this.title,
+					info: {description: this.description}
 				};
 				emit(this._id, values);
 				for (ev in this.events) {
 					var evo = this.events[ev];
-					var type = evo["type"];
-					var id = this._id+":"+evo["id"]; 
-					if (evo["rev"]) {
-						for (rev_id = 0; rev_id < evo.rev.length; rev_id++) {
-							var rev = evo["rev"][rev_id];
-							if (rev.last_mod_date == evo.date) {
-								var sub_type = type;
-								var info = {content: rev.content}
-							} else {
-								var sub_type = type+"_rev";
-								var info = {content: rev.content, rev_len: evo.rev.length}
+					var type = evo.type;
+					var id = this._id+":"+evo.id; 
+					if (type === "comment") {
+						if (evo.rev) {
+							for (rev_id = 0; rev_id < evo.rev.length; rev_id++) {
+								var rev = evo.rev[rev_id];
+								if (rev.last_mod_date == evo.date) {
+									var sub_type = type;
+									var info = {content: rev.content}
+								} else {
+									var sub_type = type+"_rev";
+									var info = {content: rev.content, rev_len: evo.rev.length}
+								}
+								var values = {
+									type: sub_type,
+									date: rev.last_mod_date,
+									author: rev.last_mod_author,
+									title: this.title, 
+									info: info
+								};
+								emit(this._id+":"+evo.id+":"+rev_id, values);
 							}
+							type += "_rev";
+							id += ":"+"-1";
 							var values = {
-								type: sub_type,
-								date: rev["last_mod_date"],
-								author: rev["last_mod_author"],
-								info: info
+								type: type,
+								date: evo.last_mod_date,
+								author: evo.last_mod_author,
+								title: this.title, 
+								info: {content: evo.content, rev_len: evo.rev.length}
 							};
-							emit(this._id+":"+evo["id"]+":"+rev_id, values);
+							emit(id, values);
+						} else {
+							var values = {
+								type: type,
+								date: evo.date,
+								author: evo.author,
+								title: this.title, 
+								info: {content: evo.content}
+							};
+							emit(id, values);
 						}
-						type += "_rev";
-						id += ":"+"-1";
-						var values = {
-							type: type,
-							date: evo["last_mod_date"],
-							author: evo["last_mod_author"],
-							info: {content: evo["content"], rev_len: evo.rev.length}
-						};
-						emit(id, values);
-					} else {
-						var values = {
-							type: type,
-							date: evo["date"],
-							author: evo["author"],
-							info: {content: evo["content"]}
-						};
-						emit(id, values);
-					}
+				} else if (type === "change") {
+					var values = {
+						type: type,
+						date: evo.date,
+						author: evo.author,
+						title: this.title, 
+						info: {new: evo.new, prev: evo.prev}
+					};
+					emit(id, values);
 				}
-			}');
+			}
+		}');
 			$reduce = new MongoCode('function(key, value) {
 				var result = {
 					type: value[0]["type"],
 					date: value[0]["date"],
+					author: value[0]["author"],
+					title: value[0]["title"],
 					info: value[0]["info"]
 				};
 				return result;
@@ -698,18 +761,34 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '<dl id="bds_timeline">';
 		$date = mktime(0, 0, 0);
 		$this->html_timeline_date_header($date);
+		$days = 0;
 		foreach ($line as $id => $val) {
 			$cursor = $val['value'];
 
 			if ($cursor['date'] < $date) {
 				$date -= 24*60*60;
+				$days++;
+
+				if ($days >= $this->getConf('timeline_days_shown')) {
+					break;
+				}
 				$this->html_timeline_date_header($date);
 			}
 
-			echo '<dt class="'.$cursor['type'].'" >';
+			$class = $cursor['type'];
+			if (isset($cursor['info']['new']) && isset($cursor['info']['new']['state'])) {
+				if (in_array($cursor['info']['new']['state'], $this->blocking_states)) {
+					$class = 'issue_closed';
+				} else {
+					$class = 'issue_created';
+				}
+			} 
+
+			echo '<dt class="'.$class.'" >';
 			$aid = explode(':', $id);
 			switch($cursor['type']) {
 				case 'comment':
+				case 'change':
 					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
 				break;
 				case 'comment_rev':
@@ -720,6 +799,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					}
 				break;
 				case 'issue_created':
+					echo '<a href="'.$this->string_issue_href($aid[0]).'">';
+				break;
+				case 'change':
 					echo '<a href="'.$this->string_issue_href($aid[0]).'">';
 				break;
 				default:
@@ -733,16 +815,64 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			switch($cursor['type']) {
 				case 'comment':
 					echo $this->getLang('comment_added');
-					echo ' ';
 					echo '<span class="id">';
 					echo '#'.$aid[0].':'.$aid[1];
 					echo '</span>';
+					echo ' ';
+					echo '(';
+					echo $cursor['title'];
+					echo ')';
 					echo '</a>';
 					echo '</dt>';
 					echo '<dd>';
 					echo $this->wiki_parse($cursor['info']['content']);
 					echo '</dd>';
 
+				break;
+				case 'change':
+				case 'change_state':
+					$state = $cursor['info']['new']['state']; 
+					if (isset($state)) {
+						//alternate
+						//$diff = array('state', 'opinion');
+						$diff = array();
+						if (in_array($state, $this->blocking_states)) {
+							echo $this->getLang('issue_closed');
+						} else {
+							echo $this->getLang('issue_reopened');
+						}
+					} else {
+						$diff = array();
+						echo $this->getLang('change_made');
+					}
+					echo ' ';
+					echo '<span class="id">';
+					echo '#'.$aid[0].':'.$aid[1];
+					echo '</span>';
+					echo ' ';
+					echo '(';
+					echo $cursor['title'];
+					echo ')';
+					echo ' ';
+					echo $this->getLang('by');
+					echo ' ';
+					echo '<span class="author">';
+					echo $this->string_format_field('name', $cursor['author']);
+					echo '</span>';
+					echo '</a>';
+					echo '</dt>';
+					echo '<dd>';
+					//alternate solution, maybe used one day
+					/*if (isset($cursor['info']['new']['state'])) {
+						echo $this->getLang('state');
+						echo ': ';
+						echo '<strong>';
+						echo $this->string_format_field('state', $cursor['info']['new']['state']);
+						echo '</strong>';
+						echo $this->wiki_parse($cursor['info']['new']['opinion']);
+					}*/
+					echo $this->html_format_change($cursor['info']['new'], $cursor['info']['prev'], $diff);
+					echo '</dd>';
 				break;
 				case 'comment_rev':
 					echo $this->getLang('comment_changed');
@@ -751,10 +881,20 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '#'.$aid[0].':'.$aid[1];
 					echo '</span>';
 					echo ' ';
+					echo '(';
+					echo $cursor['title'];
+					echo ')';
+					echo ' ';
 					echo lcfirst($this->getLang('version'));
 					echo ' ';
 					echo '<span class="id">';
 					echo $cursor['info']['rev_len'] - $aid[2];
+					echo '</span>';
+					echo ' ';
+					echo $this->getLang('by');
+					echo ' ';
+					echo '<span class="author">';
+					echo $this->string_format_field('name', $cursor['author']);
 					echo '</span>';
 					echo '</a>';
 					echo '</dt>';
@@ -770,7 +910,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '</span>';
 					echo ' ';
 					echo '(';
-					echo $cursor['info']['title'];
+					echo $cursor['title'];
 					echo ')';
 					echo ' ';
 					echo $this->getLang('by');
@@ -784,6 +924,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '<dd>';
 					echo $this->wiki_parse($cursor['info']['description']);
 					echo '</dd>';
+				break;
+				case 'change':
 				break;
 				default:
 					echo '</a>';
@@ -988,37 +1130,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					
 					switch ($event['type']) {
 						case 'change':
-							echo '<ul>';
-							foreach($event['new'] as $field => $new) {
-								echo '<li>';
-								echo '<strong>';
-								echo $this->getLang($field);
-								echo '</strong>';
-								echo ' ';
-								if ($field == 'description' || $field == 'opinion') {
-									echo $this->getLang('modified');
-									echo '(';
-									echo $this->getLang('diff');
-									echo ')';
-								} else {
-									echo ' ';
-									echo $this->getLang('changed_field');
-									echo ' ';
-									echo $this->getLang('from');
-									echo ' ';
-									echo '<em>';
-									echo $this->string_format_field($field, $event['prev'][$field]);
-									echo '</em>';
-									echo ' ';
-									echo $this->getLang('to');
-									echo ' ';
-									echo '<em>';
-									echo $this->string_format_field($field, $new);
-									echo '</em>';
-								}
-								echo '</li>';
-							}
-							echo '</ul>';
+							echo $this->html_format_change($event['new'], $event['prev']);
 						break;
 						case 'task':
 							echo '<table>';	
@@ -1439,6 +1551,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								}
 								$post['date'] = time();
 
+								//it should be empty by default
+								$post['opinion'] = '';
+
 								try {
 									$issues->insert($post);
 									$_GET['bds_issue_id'] = $min_nr;
@@ -1516,10 +1631,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									//reopening user become corodinatro
 									$post['coordinator'] = $INFO['client'];
 								}
+								//fields that cannot be changed by form
+								$diff_cursor = $cursor;
+								$unchangable = array('event', '_id', 'last_mod_author', 'last_mod_date', 'date', 'author', 'reporter');
+								foreach ($unchangable as $field) {
+									unset($diff_cursor[$field]);
+								}
 
 								//determine changes
-								$new = array_diff_assoc($post, $cursor);
-								$prev = array_diff_assoc($cursor, $post);
+								$new = array_diff_assoc($post, $diff_cursor);
+								$prev = array_diff_assoc($diff_cursor, $post);
 								//something was changed
 								if (count($new) > 0) {
 									$events = array();
