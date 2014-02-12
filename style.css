@@ -222,3 +222,49 @@
     margin: 2em 0 0.5em;
     padding: 0.4em;
 }
+
+#bds_timeline dt {
+	font-weight: normal;
+}
+#bds_timeline dd {
+	font-weight: normal;
+	margin: 0 0 0.75em 4.2em;
+}
+
+#bds_timeline dt a {
+	padding: 0 4px 2px 22px;
+}
+
+#bds_timeline dt a .id {
+	font-weight: bold;
+}
+#bds_timeline dt a:hover {
+	text-decoration: none !important;
+	background-color: #eee;
+}
+
+#bds_timeline dt .id {
+	font-weight: normal;
+}
+
+#bds_timeline dt .time {
+    color: #999999;
+    font-size: 80%;
+}
+
+#bds_timeline dt .author {
+    color: #666666;
+}
+#bds_timeline a {
+	background: url('images/changeset.png') no-repeat 1px 4px;
+}
+
+#bds_timeline .issue_closed a {
+	background: url('images/closedticket.png') no-repeat 1px 4px;
+}
+
+#bds_timeline .issue_created a {
+	background: url('images/newticket.png') no-repeat 1px 4px;
+}
+
+	

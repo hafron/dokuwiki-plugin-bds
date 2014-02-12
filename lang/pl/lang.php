@@ -115,6 +115,7 @@ $lang['reason'] = 'Powód zmiany statusu';
 
 $lang['task_added'] = 'Zadanie dodane';
 $lang['comment_added'] = 'Komentarz dodany';
+$lang['comment_changed'] = 'Komentarz zmieniony';
 
 $lang['replay_by_task'] = 'Odpowiedz zadaniem';
 $lang['change_made'] = 'Zmiana wprowadzona';
@@ -157,4 +158,6 @@ $lang ['task_rejected'] = 'Odrzucone';
 $lang['reason_reopen'] = 'Przyczyna ponownego otwarcia'; 
 $lang['reason_done']  = 'Przyczyna zakończenia';
 $lang['reason_reject'] = 'Przyczyna odrzucenia';
+
+$lang['issue_created'] = 'Utworzono zgłoszenie';
 

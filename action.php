@@ -629,41 +629,50 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				var values = {
 					type: "issue_created",
 					date: this.date,
+					author: this.reporter,
 					info: {title: this.title, description: this.description}
 				};
-				//this -> cursor
-				var event_info = function(type) {
-					switch(type) {
-						case "comment":
-							return {content: this.content}
-					}
-				}
 				emit(this._id, values);
 				for (ev in this.events) {
 					var evo = this.events[ev];
 					var type = evo["type"];
+					var id = this._id+":"+evo["id"]; 
 					if (evo["rev"]) {
-						for (rev_id in evo["rev"]) {
+						for (rev_id = 0; rev_id < evo.rev.length; rev_id++) {
 							var rev = evo["rev"][rev_id];
-							if (rev_id+1 == evo.rev.length) {
+							if (rev.last_mod_date == evo.date) {
 								var sub_type = type;
+								var info = {content: rev.content}
 							} else {
 								var sub_type = type+"_rev";
+								var info = {content: rev.content, rev_len: evo.rev.length}
 							}
 							var values = {
 								type: sub_type,
-								date: rev["last_mod_date"]
+								date: rev["last_mod_date"],
+								author: rev["last_mod_author"],
+								info: info
 							};
 							emit(this._id+":"+evo["id"]+":"+rev_id, values);
 						}
 						type += "_rev";
-					} 
-					var values = {
-						type: type,
-						date: evo["date"],
-						info: event_info.call(evo, type)
-					};
-					emit(this._id+":"+this.events[ev]["id"], values);
+						id += ":"+"-1";
+						var values = {
+							type: type,
+							date: evo["last_mod_date"],
+							author: evo["last_mod_author"],
+							info: {content: evo["content"], rev_len: evo.rev.length}
+						};
+						emit(id, values);
+					} else {
+						var values = {
+							type: type,
+							date: evo["date"],
+							author: evo["author"],
+							info: {content: evo["content"]}
+						};
+						emit(id, values);
+					}
 				}
 			}');
 			$reduce = new MongoCode('function(key, value) {
@@ -681,13 +690,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						'out' => array('merge' => 'timeline')));
 			$line = $this->timeline()->find()->sort(array('value.date' => -1));
 		} catch (MongoException $e) {
-			var_dump($e);
 			$this->error = 'error_timeline_show';
 			$this->_handle_error($this->getLang($this->error));
 			return true;
 		}
 		echo '<h1>'.$this->getLang('bds_timeline').'</h1>';
-		echo '<div id="bds_timeline">';
+		echo '<dl id="bds_timeline">';
 		$date = mktime(0, 0, 0);
 		$this->html_timeline_date_header($date);
 		foreach ($line as $id => $val) {
@@ -698,14 +706,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				$this->html_timeline_date_header($date);
 			}
 
-			echo '<div class="timeline_elm '.$cursor['type'].'" >';
+			echo '<dt class="'.$cursor['type'].'" >';
 			$aid = explode(':', $id);
 			switch($cursor['type']) {
 				case 'comment':
 					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
 				break;
 				case 'comment_rev':
-					echo '<a href="'.$this->string_issue_href($aid[0], $aid[1], $aid[2]).'">';
+					if ($aid[2] == -1) {
+						echo '<a href="'.$this->string_issue_href($aid[0], $aid[1]).'">';
+					} else {
+						echo '<a href="'.$this->string_issue_href($aid[0], $aid[1], $aid[2]).'">';
+					}
 				break;
 				case 'issue_created':
 					echo '<a href="'.$this->string_issue_href($aid[0]).'">';
@@ -714,7 +726,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '<a href="#">';
 				break;
 			}
-			echo '<span>';
+			echo '<span class="time">';
 			echo date('H:i', $cursor['date']);
 			echo '</span>';
 			echo ' ';
@@ -722,36 +734,64 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				case 'comment':
 					echo $this->getLang('comment_added');
 					echo ' ';
+					echo '<span class="id">';
 					echo '#'.$aid[0].':'.$aid[1];
+					echo '</span>';
 					echo '</a>';
-					echo '<div class="content">';
-					echo $cursor['info']['content'];
-					echo '</div>';
+					echo '</dt>';
+					echo '<dd>';
+					echo $this->wiki_parse($cursor['info']['content']);
+					echo '</dd>';
 
 				break;
 				case 'comment_rev':
+					echo $this->getLang('comment_changed');
+					echo ' ';
+					echo '<span class="id">';
+					echo '#'.$aid[0].':'.$aid[1];
+					echo '</span>';
+					echo ' ';
+					echo lcfirst($this->getLang('version'));
+					echo ' ';
+					echo '<span class="id">';
+					echo $cursor['info']['rev_len'] - $aid[2];
+					echo '</span>';
 					echo '</a>';
+					echo '</dt>';
+					echo '<dd>';
+					echo $this->wiki_parse($cursor['info']['content']);
+					echo '</dd>';
 				break;
 				case 'issue_created':
+					echo $this->getLang('issue_created');
+					echo ' ';
+					echo '<span class="id">';
+					echo '#'.$aid[0];
+					echo '</span>';
+					echo ' ';
 					echo '(';
 					echo $cursor['info']['title'];
 					echo ')';
 					echo ' ';
 					echo $this->getLang('by');
 					echo ' ';
+					echo '<span class="author">';
+					echo $this->string_format_field('name', $cursor['author']);
+					echo '</span>';
 
 					echo '</a>';
-					echo '<div class="content">';
+					echo '</dt>';
+					echo '<dd>';
 					echo $this->wiki_parse($cursor['info']['description']);
-					echo '</div>';
+					echo '</dd>';
 				break;
 				default:
 					echo '</a>';
+					echo '</dt>';
 				break;
 			}
-			echo '</div>';
 		}
-		echo '</div>';
+		echo '</dl>';
 		return true;
 	}
 	private function _handle_issue_report() {
