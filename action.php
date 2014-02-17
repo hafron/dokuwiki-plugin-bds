@@ -509,14 +509,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private function string_get_full_name($name) {
 		return $this->string_format_field('name', $name);
 	}
-	private function string_format_field($type, $value) {
+	private function string_format_field($type, $value, $collection='issue') {
 		global $auth;
 		switch ($type) {
 			case 'type':
 				return $this->issue_types[$value];
 				break;
 			case 'state':
-				return $this->issue_states[$value];
+				if ($collection == 'task') {
+					return $this->task_states[$value];
+				} else {
+					return $this->issue_states[$value];
+				}
 				break;
 			case 'task_state':
 				return $this->task_states[$value];
@@ -616,7 +620,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 
-	function html_format_change($new, $prev, $diff=array()) {
+	function html_format_change($new, $prev, $diff=array(), $collection='issue') {
 		$out = '<ul>';
 		foreach($new as $field => $new) {
 			if (in_array($field, $diff))
@@ -627,7 +631,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$out .= $this->getLang($field);
 			$out .= '</strong>';
 			$out .= ' ';
-			if ($field == 'description' || $field == 'opinion') {
+			if ($field == 'description' || $field == 'opinion' || $field == 'content') {
 				$out .= $this->getLang('modified');
 				$out .= '(';
 				$out .= $this->getLang('diff');
@@ -636,16 +640,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				$out .= ' ';
 				$out .= $this->getLang('changed_field');
 				$out .= ' ';
-				$out .= $this->getLang('from');
-				$out .= ' ';
-				$out .= '<em>';
-				$out .= $this->string_format_field($field, $prev[$field]);
-				$out .= '</em>';
-				$out .= ' ';
+				if (isset($prev[$field])) {
+					$out .= $this->getLang('from');
+					$out .= ' ';
+					$out .= '<em>';
+					$out .= $this->string_format_field($field, $prev[$field], $collection);
+					$out .= '</em>';
+					$out .= ' ';
+				}
 				$out .= $this->getLang('to');
 				$out .= ' ';
 				$out .= '<em>';
-				$out .= $this->string_format_field($field, $new);
+				$out .= $this->string_format_field($field, $new, $collection);
 				$out .= '</em>';
 			}
 			$out .= '</li>';
@@ -684,6 +690,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					var evo = this.events[ev];
 					var type = evo.type;
 					var id = this._id+":"+evo.id; 
+
+					var fields = ["executor", "cost", "class", "state", "content"];
+
 					if (type === "comment" || type === "task") {
 						if (evo.rev) {
 							for (rev_id = 0; rev_id < evo.rev.length; rev_id++) {
@@ -700,6 +709,19 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									info.cost = rev.cost;
 									info.class = rev.class;
 									info.state = rev.state;
+
+									if (rev_id > 0) {
+										var old_rev = evo.rev[rev_id - 1];
+										info.old = {};
+										for (var j = 0; j < fields.length; j++) {
+											if (rev[fields[j]] != old_rev[fields[j]]) {
+												info.old[fields[j]] = old_rev[fields[j]];
+											}
+										}
+									}
+									if (rev.reason) {
+										info.reason = rev.reason;
+									}
 								}
 								var values = {
 									type: sub_type,
@@ -713,10 +735,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 							var info = {content: evo.content, rev_len: evo.rev.length};
 							if (type === "task") {
-								info.executor = rev.executor;
-								info.cost = rev.cost;
-								info.class = rev.class;
-								info.state = rev.state;
+								var old_rev = evo.rev[0];
+
+								info.old = {};
+								for (var j = 0; j < fields.length; j++) {
+									if (evo[fields[j]] != old_rev[fields[j]]) {
+										info.old[fields[j]] = old_rev[fields[j]];
+									}
+								}
+
+								info.executor = evo.executor;
+								info.cost = evo.cost;
+								info.class = evo.class;
+								info.state = evo.state;
+
+								if (evo.reason) {
+									info.reason = evo.reason;
+								}
 							}
 							type += "_rev";
 							id += ":"+"-1";
@@ -735,6 +770,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								info.cost = evo.cost;
 								info.class = evo.class;
 								info.state = evo.state;
+
+								if (evo.reason) {
+									info.reason = evo.reason;
+								}
 							}
 							var values = {
 								type: type,
@@ -803,7 +842,15 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				} else {
 					$class = 'issue_created';
 				}
-			} 
+			} elseif ($cursor['type'] == 'task_rev') {
+				if ($cursor['info']['state'] != $cursor['info']['old']['state']) {
+					if ($cursor['info']['state'] != 0) {
+						$class = 'task_closed';
+					} else {
+						$class = 'task';
+					}
+				}
+			}
 
 			echo '<dt class="'.$class.'" >';
 			$aid = explode(':', $id);
@@ -851,6 +898,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '(';
 					echo $cursor['title'];
 					echo ')';
+					if ($cursor['type'] == 'task') {
+						echo ' ';
+						echo $this->getLang('task_for');
+						echo ' ';
+						echo '<span class="author">';
+						echo $this->string_format_field('name', $cursor['info']['executor']);
+						echo '</span>';
+					}
 					echo ' ';
 					echo $this->getLang('by');
 					echo ' ';
@@ -868,9 +923,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				case 'change_state':
 					$state = $cursor['info']['new']['state']; 
 					if (isset($state)) {
-						//alternate
-						//$diff = array('state', 'opinion');
-						$diff = array();
+						$diff = array('opinion');
 						if (in_array($state, $this->blocking_states)) {
 							echo $this->getLang('issue_closed');
 						} else {
@@ -892,25 +945,34 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo $this->getLang('by');
 					echo ' ';
 					echo '<span class="author">';
-					echo $this->string_format_field('name', $cursor['author']);
+					echo $this->string_format_field('name', $cursor['info']['new']['coordinator']);
 					echo '</span>';
 					echo '</a>';
 					echo '</dt>';
 					echo '<dd>';
-					//alternate solution, maybe used one day
-					/*if (isset($cursor['info']['new']['state'])) {
-						echo $this->getLang('state');
-						echo ': ';
-						echo '<strong>';
-						echo $this->string_format_field('state', $cursor['info']['new']['state']);
-						echo '</strong>';
-						echo $this->wiki_parse($cursor['info']['new']['opinion']);
-					}*/
 					echo $this->html_format_change($cursor['info']['new'], $cursor['info']['prev'], $diff);
+					if (isset($cursor['info']['new']['state'])) {
+						echo $this->wiki_parse($cursor['info']['new']['opinion']);
+					}
 					echo '</dd>';
 				break;
 				case 'comment_rev':
-					echo $this->getLang('comment_changed');
+				case 'task_rev':
+					if ($cursor['type'] == 'task_rev') {
+						if ($cursor['info']['state'] != $cursor['info']['old']['state']) {
+							if ($cursor['info']['state'] == 0) {
+								echo $this->getLang('task_reopened');
+							} else if ($cursor['info']['state'] == 1) {
+								echo $this->getLang('task_closed');
+							} else if ($cursor['info']['state'] == 2) {
+								echo $this->getLang('task_rejected_header');
+							}
+						} else {
+							echo $this->getLang('task_changed');
+						}
+					} else {
+						echo $this->getLang('comment_changed');
+					}
 					echo ' ';
 					echo '<span class="id">';
 					echo '#'.$aid[0].':'.$aid[1];
@@ -934,7 +996,20 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '</a>';
 					echo '</dt>';
 					echo '<dd>';
-					echo $this->wiki_parse($cursor['info']['content']);
+					if ($cursor['type'] == 'task_rev' && isset($cursor['info']['old'])) {
+						//remoev unchanged field
+						$new = array();
+						foreach ($cursor['info']['old'] as $k => $v) {
+							if (isset($cursor['info'][$k])) {
+								$new[$k] = $cursor['info'][$k];
+							}
+						}
+
+						echo $this->html_format_change($new, $cursor['info']['old'], array('reason'), 'task');
+						echo $this->wiki_parse($cursor['info']['reason']);
+					} else {
+						echo $this->wiki_parse($cursor['info']['content']);
+					}
 					echo '</dd>';
 				break;
 				case 'issue_created':

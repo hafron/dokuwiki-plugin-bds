@@ -115,6 +115,10 @@ $lang['task_state'] = 'Status';
 $lang['reason'] = 'Powód zmiany statusu';
 
 $lang['task_added'] = 'Zadanie dodane';
+$lang['task_changed'] = 'Zadanie zmienione';
+$lang['task_rejected_header'] = 'Zadanie odrzucone';
+$lang['task_closed'] = 'Zadanie zakończone';
+$lang['task_reopened'] = 'Zadanie ponownie otwarte';
 $lang['comment_added'] = 'Komentarz dodany';
 $lang['comment_changed'] = 'Komentarz zmieniony';
 
@@ -167,3 +171,6 @@ $lang['issue_reopened'] = 'Ponownie otwarto problem';
 
 $lang['today'] = 'Dzisiaj';
 $lang['yesterday'] = 'Wczoraj';
+
+$lang['task_for'] = 'dla';
+$lang['content'] = 'Opis';
