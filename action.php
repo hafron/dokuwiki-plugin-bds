@@ -965,7 +965,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							} else if ($cursor['info']['state'] == 1) {
 								echo $this->getLang('task_closed');
 							} else if ($cursor['info']['state'] == 2) {
-								echo $this->getLang('task_rejected_header');
+								echo $this->getLang('task_rejected');
 							}
 						} else {
 							echo $this->getLang('task_changed');
