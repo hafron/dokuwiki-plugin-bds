@@ -6,8 +6,12 @@ $lang['bds_issues'] = 'Problemy i zadania';
 $lang['bds_issue_report'] = 'Zgłoś problem';
 $lang['bds_reports'] = 'Raporty';
 
+$lang['issues'] = 'Problemy';
+$lang['tasks'] = 'Zadania';
+
 $lang['report_issue'] = 'Zgłoś problem';
 $lang['id'] = 'Nr';
+$lang['_id'] = 'Nr';
 $lang['type'] = 'Typ';
 $lang['title'] = 'Tytuł';
 $lang['state'] = 'Status';
@@ -15,10 +19,12 @@ $lang['reporter'] = 'Zgłaszający';
 $lang['executor'] = 'Wykonawca';
 $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
-$lang['created'] = 'Utworzone';
+$lang['date'] = 'Utworzone';
 $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
+
+$lang['entity'] = 'Podmiot';
 
 $lang['opinion'] = 'Ocena skuteczności';
 $lang['root_cause'] = 'Przyczyna źródłowa';
@@ -55,6 +61,7 @@ $lang['error_issue_insert'] = 'Nie można dodać nowego problemu.';
 $lang['error_task_add'] = 'Nie masz uprawnień aby dodawać zadania.';
 
 $lang['vald_type_required'] = 'Musisz podać typ problemu.';
+$lang['vald_entity_required'] = 'Musisz wybrać podmiot z listy.';
 $lang['vald_title_required'] = 'Musisz podać tytuł.';
 $lang['vald_title_too_long'] = 'Tytuł jest za długi. Maksymalna długość tytułu wynosi: %d.';
 $lang['vald_title_wrong_chars'] = 'Tytuł zawiera niedozwolone znaki. Dozwolone znaki to litery, cyfry, spacje, myślniki, kropki i przecinki.';

@@ -20,6 +20,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private $root_causes = array();
 	private $task_states = array();
 	private $blocking_states = array();
+	private $entity = array();
 
 	private $anchor = '';
 
@@ -72,6 +73,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$this->task_states[2] = $this->getLang('task_rejected');
 
 		$this->helper = $this->loadHelper('bds');
+
+		$this->entity = array();
+		$entitis_ex = explode(',', $this->getConf('entitis'));
+		foreach ($entitis_ex as $entity) {
+			$this->entity[] = trim($entity);
+		}
 	}
 	private function user_can_edit() {
 		global $INFO;
@@ -178,6 +185,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$value['opinion'] = '';
 		}
 
+		if (isset($_POST['entity'])) {
+			$value['entity'] = $_POST['entity'];
+		} elseif (isset($default['entity'])) {
+			$value['entity'] = $default['entity'];
+		} else {
+			$value['entity'] = '';
+		}
 
 		foreach ($this->vald as $error) {
 			echo '<div class="error">';
@@ -198,6 +212,22 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo ' selected';
 			}
 			echo ' value="'.$key.'">'.$name.'</opiton>';
+		}
+		echo '</select>';
+		echo '</span>';
+		echo '</div>';
+
+		echo '<div class="row">';
+		echo '<label for="entity">'.$this->getLang('entity').':</label>';
+
+		echo '<span>';
+		echo '<select name="entity" id="entity">';
+		foreach ($this->entity as $name) {
+			echo '<option';
+			if ($value['entity'] == $name) {
+				echo ' selected';
+			}
+			echo ' value="'.$name.'">'.$name.'</opiton>';
 		}
 		echo '</select>';
 		echo '</span>';
@@ -512,6 +542,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private function string_format_field($type, $value, $collection='issue') {
 		global $auth;
 		switch ($type) {
+			case '_id':
+				return $this->html_issue_link($value);
+			break;
+			case 'created':
+				return date($this->getConf('date_format'), $value);
+			break;
 			case 'type':
 				return $this->issue_types[$value];
 				break;
@@ -945,7 +981,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo $this->getLang('by');
 					echo ' ';
 					echo '<span class="author">';
-					echo $this->string_format_field('name', $cursor['info']['new']['coordinator']);
+					echo $this->string_format_field('name', $cursor['author']);
 					echo '</span>';
 					echo '</a>';
 					echo '</dt>';
@@ -1072,6 +1108,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '</h1>';
 
 			echo '<h1>';
+			echo '[';
+			echo $cursor['entity'];
+			echo '] ';
 			echo $cursor['title'];
 			echo '</h1>';
 
@@ -1113,8 +1152,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 			echo '<h2>';
 			echo $this->getLang('description');
+			echo '<span>';
 			echo ' ';
 			echo  '('.$this->getLang('last_modified_by').' '.$this->string_get_full_name($desc_author).')';
+			echo '</span>';
 			echo '</h2>';
 
 			echo $this->wiki_parse($cursor['description']);
@@ -1145,11 +1186,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			if (isset($cursor['events'])) {
 				foreach ($cursor['events'] as $event) {
 					//create anchor
-					echo '<div id="'.$event['id'].'"';
-					if ($event['type'] == 'task') {
-						echo ' class="task"';
+					$class = $event['type'];
+					if (isset($event['root_cause']) && $event['root_cause'] != 0) {
+						$class = 'root_cause_comment';
 					}
-					echo '>';
+					echo '<div id="'.$event['id'].'" class="'.$class.'">';
+
 					echo '<h2>';
 					switch ($event['type']) {
 						case 'comment':
@@ -1544,33 +1586,38 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return true;
 		}
 	}
+	private function html_table_view($doc, $fields) {
+		echo '<table>';
+		echo '<tr>';	
+		foreach ($fields as $field) {
+			echo '<th>'.$this->getLang($field).'</th>';
+		}
+		echo '</tr>';	
+		foreach ($doc as $cursor) {
+			echo '<tr>';	
+			foreach ($fields as $field) {
+				echo '<td>';
+				echo $this->string_format_field($field, $cursor[$field]);
+				echo '</td>';
+			}
+		}
+		echo '</table>';
+	}
 	private function _handle_issues() {
 		global $auth;
 		$issues = $this->issues();
 		if ($issues == false) {
 			$this->_handle_error($this->getLang($this->error));
 		} else {
-			$doc = $issues->find()->sort(array('_id' => -1));
-			echo '<table>';
-			echo '<tr>';	
-			echo '<th>'.$this->getLang('id').'</th>';
-			echo '<th>'.$this->getLang('state').'</th>';
-			echo '<th>'.$this->getLang('type').'</th>';
-			echo '<th>'.$this->getLang('title').'</th>';
-			echo '<th>'.$this->getLang('coordinator').'</th>';
-			echo '<th>'.$this->getLang('created').'</th>';
-			echo '</tr>';	
-			foreach ($doc as $cursor) {
-				echo '<tr>';	
-				echo '<td>'.$this->html_issue_link($cursor['_id']).'</td>';
-				echo '<td>'.$this->issue_states[$cursor['state']].'</td>';
-				echo '<td>'.$this->issue_types[$cursor['type']].'</td>';
-				echo '<td>'.$cursor['title'].'</td>';
-				echo '<td>'.$this->html_coordinator($cursor).'</td>';
-				echo '<td>'.date($this->getConf('date_format'), $cursor['date']).'</td>';
-				echo '</tr>';	
-			}
-			echo '</table>';
+			/*$doc = $issues->find()->sort(array('_id' => -1));
+			$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date'));*/
+			echo '<h1>';
+			echo $this->getLang('issues');
+			echo '</h1>';
+
+			echo '<h1>';
+			echo $this->getLang('tasks');
+			echo '</h1>';
 		}
 	}
 
@@ -1611,6 +1658,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$post['type'] = (int)$_POST['type'];
 				}
 
+				if ( ! in_array($_POST['entity'], $this->entity)) {
+					$this->vald['entity'] = $this->getLang('vald_entity_required');
+				} else {
+					$post['entity'] = $_POST['entity'];
+				}
+
 				$_POST['title'] = trim($_POST['title']);
 				if (strlen($_POST['title']) == 0) {
 					$this->vald['title'] = $this->getLang('vald_title_required');
@@ -1631,6 +1684,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				} else {
 					$post['description'] = $_POST['description'];
 				}
+
 
 				//check only state when user is reopening issue
 				//FALLTHROU

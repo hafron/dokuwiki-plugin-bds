@@ -7,3 +7,5 @@ $conf['numbers_separator'] = '.';
 $conf['fractional_separator'] = ',';
 $conf['cost_max'] = 1000000000;
 $conf['timeline_days_shown'] = 7;
+$conf['entitis'] = 'wewnętrzny';
+
