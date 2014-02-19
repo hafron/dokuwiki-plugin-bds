@@ -7,4 +7,3 @@ $meta['fractional_separator'] = array('string');
 $meta['cost_max'] = array('numeric', '_min' => 0);
 $meta['timeline_days_shown'] = array('numeric', '_min' => 0, '_max' => 365*100);
 $meta['entitis'] = array('string');
-$meta['tcpdf_path'] = array('string');
