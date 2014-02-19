@@ -181,3 +181,17 @@ $lang['yesterday'] = 'Wczoraj';
 
 $lang['task_for'] = 'dla';
 $lang['content'] = 'Opis';
+
+$lang['8d_report'] = 'Raport 8D';
+$lang['8d_report_for'] = 'dla';
+$lang['open_date'] = 'Data otwarcia';
+$lang['2d'] = '2D - Problem';
+$lang['3d'] = '3D - Przyczyna';
+$lang['4d'] = '4D - Działania korekcyjne (natychmiastowe)';
+$lang['5d'] = '5D - Działania korygujące';
+$lang['6d'] = '6D - Działania zapobiegawcze';
+$lang['7d'] = '7D - Ocena skuteczności';
+$lang['8d'] = '8D - Zakończenie';
+
+$lang['cost_total'] = 'Koszt całkowity(zł)';
+$lang['true_date'] = 'Data';

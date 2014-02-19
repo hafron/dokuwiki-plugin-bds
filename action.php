@@ -546,6 +546,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				return $this->html_issue_link($value);
 			break;
 			case 'created':
+			case 'true_date':
 				return date($this->getConf('date_format'), $value);
 			break;
 			case 'type':
@@ -564,6 +565,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'class':
 				return $this->task_classes[$value];
 				break;
+			case 'cost':
+				return sprintf('%.2f', $value);
+			break;
 			case 'date':
 				$diff = time() - $value;
 				if ($diff < 5) {
@@ -1090,6 +1094,280 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		return true;
 	}
 
+	function show_tasks_table($cursor, $type) {
+
+		if (count($cursor['tasks'][$type]) == 0) {
+			return;
+		}
+		
+		echo '<table>';
+		echo '<tr>';
+		echo '<th>';
+		echo $this->getLang('executor');
+		echo '</th>';
+		echo '<th>';
+		echo $this->getLang('date');
+		echo '</th>';
+		echo '<th>';
+		echo $this->getLang('state');
+		echo '</th>';
+		echo '<th>';
+		echo $this->getLang('cost');
+		echo '</th>';
+		echo '</tr>';
+		
+		foreach ($cursor['tasks'][$type] as $task) {
+			echo '<tr>';
+			echo '<td>';
+			echo $this->string_format_field('name', $task['executor']);
+			echo '</td>';
+			echo '<td>';
+			echo $this->string_format_field('true_date', $task['date']);
+			echo '</td>';
+			echo '<td>';
+			echo $this->task_states[$task['state']];
+			echo '</td>';
+			echo '<td>';
+			echo $this->string_format_field('cost', $task['cost']);
+			echo '</td>';
+			echo '</tr>';
+
+			echo '<tr>';
+			echo '<td colspan="4">';
+			echo $this->wiki_parse($task['content']);
+			echo '</td>';
+			echo '</tr>';
+		}
+		echo '</table>';
+	}
+
+	function generate_8d_html_report($cursor) {
+		echo '<h1>';
+		echo $this->getLang('8d_report');
+		echo '</h1>';
+
+		echo '<table>';
+		echo '<tr>';
+		echo '<td>';
+		echo ucfirst($this->string_format_field('type', $cursor['type']));
+		echo ' ';
+		echo '<strong>';
+		echo '#';
+		echo $cursor['_id'];
+		echo '</strong>';
+		echo '</td>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('entity');
+		echo ': ';
+		echo '</strong>';
+		echo $this->string_format_field('entity', $cursor['entinty']);
+		echo '</td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('open_date');
+		echo ': ';
+		echo '</strong>';
+		echo $this->string_format_field('true_date', $cursor['date']);
+		echo '</td>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('reporter');
+		echo ': ';
+		echo '</strong>';
+		echo $this->string_format_field('name', $cursor['reporter']);
+		echo '</td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td colspan="2">';
+		echo '<strong>';
+		echo $this->getLang('title');
+		echo ': </strong>';
+		echo $this->string_format_field('title', $cursor['title']);
+		echo '</td>';
+		echo '</tr>';
+		echo '</table>';
+
+		echo '<h2>';
+		echo $this->getLang('2d');
+		echo '</h2>';
+		echo $this->wiki_parse($cursor['description']);
+
+		echo '<h2>';
+		echo $this->getLang('3d');
+		echo '</h2>';
+
+		foreach ($cursor['root_causes'] as $cause => $data) {
+			echo '<h3>';
+			echo $this->root_causes[$cause];
+			echo '</h3>';
+			echo '<ul>';
+			foreach($data as $value) {
+				echo '<li>';	
+				echo $this->wiki_parse($value['content']);
+				echo '</li>';	
+			}
+			echo '</ul>';
+		}
+
+		echo '<h2>';
+		echo $this->getLang('4d');
+		echo '</h2>';
+
+		$this->show_tasks_table($cursor, 0);
+
+		echo '<h2>';
+		echo $this->getLang('5d');
+		echo '</h2>';
+
+		$this->show_tasks_table($cursor, 1);
+
+		echo '<h2>';
+		echo $this->getLang('6d');
+		echo '</h2>';
+
+		$this->show_tasks_table($cursor, 2);
+
+		echo '<h2>';
+		echo $this->getLang('7d');
+		echo '</h2>';
+
+		echo $this->wiki_parse($cursor['opinion']);
+
+		echo '<h2>';
+		echo $this->getLang('8d');
+		echo '</h2>';
+		echo '<table>';
+		echo '<tr>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('true_date');
+		echo ': </strong>';
+		echo $this->string_format_field('true_date', $cursor['last_mod_date']);
+		echo '</td>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('state');
+		echo ': ';
+		echo '</strong>';
+		echo $this->issue_states[$cursor['state']];
+		echo '</td>';
+		echo '</tr>';
+
+		echo '<tr>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('cost_total');
+		echo ': ';
+		echo '</strong>';
+		echo $this->string_format_field('cost', $cursor['cost_total']);
+		echo '</td>';
+		echo '<td>';
+		echo '<strong>';
+		echo $this->getLang('coordinator');
+		echo ': ';
+		echo '</strong>';
+		echo $this->string_format_field('name', $cursor['coordinator']);
+		echo '</td>';
+		echo '</tr>';
+		echo '</table>';
+	}
+
+	function generate_8d_pdf_report($cursor) {
+		global $conf, $INFO;
+		try {
+			//TCP pdf code
+			//we use dokuwiki images instead
+			define('K_PATH_IMAGES', '');
+			require_once('tcpdf.php');
+
+			// create new PDF document
+			$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+			$header = '#'.$cursor['_id'].' '.$this->string_format_field('type', $cursor['type']).' ('.$this->string_format_field('state', $cursor['state']).')';
+
+			// set document information
+			$pdf->SetCreator($this->getLang('bds'));
+			$pdf->SetTitle($this->getLang('8d_report').' '.$this->getLang('8d_report_for').' '.$header);
+				
+			$pdf->SetCellPadding(0);
+			// set default header daa
+
+            $logoSize = array();
+            $logo = tpl_getMediaFile(array(':wiki:logo.png', ':logo.png', 'images/logo.png'), false, $logoSize);
+
+			$header_string = '';
+			if ($conf['tagline']) {
+				$header_string = $conf['tagline']; 
+			}
+
+			//convent px to mm
+			$mm_width = $logoSize[0]/3.779528;
+			$pdf->SetHeaderData($logo, $mm_width, $conf['title'], $header_string);
+
+			// set header and footer fonts
+			$pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+			$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+
+			// set default monospaced font
+			$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+			//set margins
+			$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+			$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+			$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
+			//set auto page breaks
+			$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+			//set image scale factor
+			$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+			// Set font
+			// dejavusans is a UTF-8 Unicode font, if you only need to
+			// print standard ASCII chars, you can use core fonts like
+			// helvetica or times to reduce file size.
+			$pdf->SetFont('dejavusans', '', 10, '', true);
+
+			// Add a page
+			// This method has several options, check the source code documentation for more information.
+			$pdf->AddPage();
+
+			$no_js = true;
+
+			ob_start();
+			$this->generate_8d_html_report($cursor);
+			$html = ob_get_clean();
+
+			$html = str_replace('<table>', '<table cellpadding="5" border="1">', $html);
+			$html = str_replace('<th>', '<th bgcolor="#ccc" align="center">', $html);
+
+			// Print text using writeHTMLCell()
+			//$pdf->writeHTMLCell($w=0, $h=0, $x='', $y='', $html, $border=0, $ln=1, $fill=0, $reseth=true, $align='', $autopadding=true);
+			$pdf->writeHTML($html, true, false, true, false, '');
+
+			// ---------------------------------------------------------
+
+			// Close and output PDF document
+			// This method has several options, check the source code documentation for more information.
+			$pdf->Output('hello.pdf', 'I');
+
+			/*$buf = $p->get_buffer();
+			$len = strlen($buf);
+
+			header("Content-type: application/pdf");
+			header("Content-Length: $len");
+			header("Content-Disposition: inline; filename=hello.pdf");
+			print $buf;*/
+		}
+		catch (Exception $e) {
+			die($e);
+		}
+	}
 
 	private function _handle_issue_show($id) {
 		global $auth, $INFO;
@@ -1176,6 +1454,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 				echo $this->wiki_parse($cursor['opinion']);
 			}
+
+			echo '<a href="?do=bds_8d&bds_issue_id='.$id.'" class="bds_inline_button bds_report_button">';
+			echo $this->getLang('8d_report');
+			echo '</a>';
 
 
 			echo '</div>';
@@ -1643,11 +1925,73 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_change_event':
 			case 'bds_issue_change_task':
 			case 'bds_issues':
+			case 'bds_8d':
 				$event->stopPropagation();
 				$event->preventDefault();
 				break;
 		}
 		switch($event->data) {
+			case 'bds_8d':
+				$id = (int) $_GET['bds_issue_id'];
+				$map = new MongoCode('function() {
+					report = {};
+					for (var i = 0; i < this.events.length; i++) {
+						event = this.events[i];
+						if (event.type === "comment") {
+							if (event.root_cause !== 0) {
+								if ( ! report.root_causes) {
+									report.root_causes = {};
+								}
+								if ( ! report.root_causes[event.root_cause]) {
+									report.root_causes[event.root_cause] = [];
+								}
+								(report.root_causes[event.root_cause]).push({content: event.content});
+							}
+						} else if (event.type === "task") {
+							if ( ! report.tasks) {
+								report.tasks = {};
+							}
+							if ( ! report.tasks[event.class]) {
+								report.tasks[event.class] = [];
+							}
+							(report.tasks[event.class]).push({executor: event.executor, content: event.content, date: event.date, state: event.state, cost: event.cost});
+						}
+					}
+					emit(this._id, report);
+				}');
+				$reduce = new MongoCode('function(key, value) {
+					return value;
+				}');
+				$report = $this->bds()->command(array(
+						'mapreduce' => 'issues',
+						'map' => $map,
+						'reduce' => $reduce,
+						'query' => array('_id' => $id),
+						'out' => array('inline' => 1)));
+				$events = $report['results'][0]['value'];
+
+
+				$cursor = $this->issues()->findOne(array('_id' => $id), array('_id' => true, 'description' => true, 'date' => true, 'reporter' => true, 'title' => true, 'entity' => true, 'opinion' => true, 'last_mod_date' => true, 'type' => true, 'state' => true, 'coordinator' => true));
+
+				$cost_total = $this->issues()->aggregate(
+				array('$match' => array('_id' => $id)),
+				array('$unwind' => '$events'),
+				array('$group' => array('_id' => '$_id', 'cost_total' => array('$sum' => '$events.cost')))
+				);
+
+				$cursor['root_causes'] = $events['root_causes'];
+				$cursor['tasks'] = $events['tasks'];
+				$cursor['cost_total'] = $cost_total['result'][0]['cost_total'];
+				
+
+				if (count($cursor) == 0) { 
+					$this->error = 'error_issue_id_unknown';
+					$this->_handle_error($this->getLang($this->error));
+				} else {
+					$this->generate_8d_pdf_report($cursor);
+					exit(0);
+				}
+			break;
 			case 'bds_issue_add':
 			case 'bds_issue_change':
 				$this->vald = array();
@@ -1861,8 +2205,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					//cost is not required
 					if (isset($_POST['cost']) && $_POST['cost'] != '') {
 						//remove not nessesery chars
-						$separators = array(' ', $this->getConf('numbers_separator'));	
-						$fract_sep = $this->getConf('fractional_separator');
+						$locale = localeconv();
+						$separators = array(' ', $locale['thousands_sep']);	
+						$fract_sep = $locale['decimal_point'];
 
 						$cost = str_replace($separators, '', $_POST['cost']);
 						$cost_ex = explode($fract_sep, $cost);
@@ -1871,15 +2216,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$this->vald_comment['cost'] = $this->getLang('vald_cost_wrong_format');
 						} elseif (isset($cost_ex[1]) && (strlen($cost_ex[1]) > 2 || ! ctype_digit($cost_ex[1]))) {
 							$this->vald_comment['cost'] = $this->getLang('vald_cost_wrong_format');
-						} elseif ( (double)implode('.', $cost_ex) > (double)$this->getConf('cost_max')) {
+						} elseif ( (double)$_POST['cost'] > (double)$this->getConf('cost_max')) {
 							$this->vald_comment['cost'] = str_replace('%d', $this->getConf('cost_max'), $this->getLang('vald_cost_too_big'));
 						} else {
-							if ( ! isset($cost_ex[1])) {
-								$cost .= ',00';
-							} else if (strlen($cost_ex[1]) == 1) {
-								$cost = $cost_ex[0].','.$cost_ex[1].'0';
-							}
-							$post['cost'] = $cost;
+							$post['cost'] = (double) $_POST['cost'];
 						}
 					}
 
