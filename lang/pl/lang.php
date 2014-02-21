@@ -20,6 +20,7 @@ $lang['executor'] = 'Wykonawca';
 $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
 $lang['date'] = 'Utworzone';
+$lang['last_mod_date'] = 'Ostatnio zmienione';
 $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
@@ -59,6 +60,8 @@ $lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istni
 $lang['error_db_connection'] = 'Nie można połączyć się z bazą danych.';
 $lang['error_issue_insert'] = 'Nie można dodać nowego problemu.';
 $lang['error_task_add'] = 'Nie masz uprawnień aby dodawać zadania.';
+$lang['error_table_unknown'] = 'Wybrana tabela nie istnieje.';
+$lang['error_report_unknown'] = 'Wybrana raport nie istnieje.';
 
 $lang['vald_type_required'] = 'Musisz podać typ problemu.';
 $lang['vald_entity_required'] = 'Musisz wybrać podmiot z listy.';
@@ -87,6 +90,9 @@ $lang['vald_executor_not_exists'] = 'Użytkownik podany jako wykonawca nie istni
 $lang['vald_cost_too_big'] = 'Koszt jest duży. Maksymalny koszt wynosi: %d';
 $lang['vald_cost_wrong_format'] = 'Koszt ma zły format. Podaj prawidłową liczbę zmiennoprzecinkową.';
 $lang['vald_class_required'] = 'Musisz podać klasę zadania.';
+
+$lang['vald_days_should_be_numeric'] = 'Ilość dni musi być liczbą.';
+
 
 $lang['type_client_complaint'] = 'reklamacja od klienta';
 $lang['type_noneconformity'] = 'niezgodność';
@@ -195,3 +201,26 @@ $lang['8d'] = '8D - Zakończenie';
 
 $lang['cost_total'] = 'Koszt całkowity(zł)';
 $lang['true_date'] = 'Data';
+
+$lang['newest_to_oldest'] = 'Otwarte od najnowszych do najstarszych';
+$lang['issues_newest_to_oldest'] = 'Problemy otwarte od najnowszych do najstarszych';
+$lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszych';
+
+$lang['newest_than'] = 'Wszystkie nowsze niż';
+$lang['issues_newest_than'] = 'Problemy nowsze niż';
+
+$lang['my_opened_issues'] = 'Problemy otwarte w które jestem zaangażowany';
+$lang['my_opened'] = 'Otwarte w które jestem zaangażowany';
+
+$lang['me_executor'] = 'Przypisane do mnie';
+$lang['task_me_executor'] = 'Zadania przypisane do mnie';
+
+$lang['issues_newest_than'] = 'Wszystkie nowsze problemy niż';
+$lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
+
+$lang['show'] = 'Pokaż';
+
+$lang['by_last_activity'] = 'Otwarte według najbardziej niedawno zmienianych';
+$lang['issues_by_last_activity'] = 'Problemy otwarte według najbardziej niedawno zmienianych';
+
+$lang['ns'] = 'n.d.';

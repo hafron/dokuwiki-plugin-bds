@@ -211,6 +211,9 @@
 .bds_form input[id=cost] {
 	width: 7em;
 }
+input.days {
+	width: 3em;
+}
 
 .root_cause {
 	margin-bottom:0.5em;

@@ -539,7 +539,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private function string_get_full_name($name) {
 		return $this->string_format_field('name', $name);
 	}
-	private function string_format_field($type, $value, $collection='issue') {
+	private function string_format_field($type, $value, $collection='issues') {
 		global $auth;
 		switch ($type) {
 			case '_id':
@@ -553,7 +553,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				return $this->issue_types[$value];
 				break;
 			case 'state':
-				if ($collection == 'task') {
+				if ($collection == 'tasks') {
 					return $this->task_states[$value];
 				} else {
 					return $this->issue_states[$value];
@@ -566,9 +566,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				return $this->task_classes[$value];
 				break;
 			case 'cost':
-				return sprintf('%.2f', $value);
+				if ($value > 0) 
+					return sprintf('%.2f', $value);
+				else
+					return '<em>'.$this->getLang('ns').'</em>';
 			break;
 			case 'date':
+			case 'last_mod_date':
 				$diff = time() - $value;
 				if ($diff < 5) {
 					return $this->getLang('just_now');
@@ -595,8 +599,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				break;
 			case 'name':
 			case 'coordinator':
+			case 'executor':
 				$data = $auth->getUserData($value);
 				if ($data == false) {
+					if ($type == 'coordinator') {
+						return '<em>'.$this->getLang('none').'</em>';
+					}
 					return '';
 				} else {
 					return $data['name'];
@@ -1201,17 +1209,19 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo $this->getLang('3d');
 		echo '</h2>';
 
-		foreach ($cursor['root_causes'] as $cause => $data) {
-			echo '<h3>';
-			echo $this->root_causes[$cause];
-			echo '</h3>';
-			echo '<ul>';
-			foreach($data as $value) {
-				echo '<li>';	
-				echo $this->wiki_parse($value['content']);
-				echo '</li>';	
+		if (is_array($cursor['root_causes'])) {
+			foreach ($cursor['root_causes'] as $cause => $data) {
+				echo '<h3>';
+				echo $this->root_causes[$cause];
+				echo '</h3>';
+				echo '<ul>';
+				foreach($data as $value) {
+					echo '<li>';	
+					echo $this->wiki_parse($value['content']);
+					echo '</li>';	
+				}
+				echo '</ul>';
 			}
-			echo '</ul>';
 		}
 
 		echo '<h2>';
@@ -1354,7 +1364,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 			// Close and output PDF document
 			// This method has several options, check the source code documentation for more information.
-			$pdf->Output('hello.pdf', 'I');
+			$pdf->Output($cursor['_id'].'_'.$this->string_format_field('true_date', $cursor['date']).'.pdf', 'I');
 
 			/*$buf = $p->get_buffer();
 			$len = strlen($buf);
@@ -1399,7 +1409,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo $this->string_time_to_now($cursor['date']);
 			echo '</span>';
 			echo '<span>';
-			if (isset($cursor['last_mod_date'])) {
+			if (isset($cursor['last_mod_date']) && $cursor['last_mod_date'] != $cursor['date']) {
 				if (in_array($cursor['state'], $this->blocking_states)) {
 					echo $this->getLang('closed');
 				} else {
@@ -1868,7 +1878,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			return true;
 		}
 	}
-	private function html_table_view($doc, $fields) {
+	private function html_table_view($doc, $fields, $table='issues') {
 		echo '<table>';
 		echo '<tr>';	
 		foreach ($fields as $field) {
@@ -1879,32 +1889,282 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo '<tr>';	
 			foreach ($fields as $field) {
 				echo '<td>';
-				echo $this->string_format_field($field, $cursor[$field]);
+				//only if title
+				if ($field == 'title') {
+					echo '[';
+					echo $cursor['entity'];
+					echo '] ';
+				} elseif ($field == 'id') {
+					echo $this->html_anchor_to_event($cursor['_id'], $cursor[$field], true);
+					continue;
+				}
+				echo $this->string_format_field($field, $cursor[$field], $table);
 				echo '</td>';
 			}
 		}
 		echo '</table>';
 	}
-	private function _handle_issues() {
-		global $auth;
+	private function _handle_table() {
+		global $auth, $INFO;
+
+		$table = $_GET['table'];
+		$report = $_GET['report'];
+
 		$issues = $this->issues();
 		if ($issues == false) {
+			$this->msg = 'error_db_connection';
 			$this->_handle_error($this->getLang($this->error));
-		} else {
-			/*$doc = $issues->find()->sort(array('_id' => -1));
-			$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date'));*/
-			echo '<h1>';
-			echo $this->getLang('issues');
-			echo '</h1>';
-
-			echo '<h1>';
-			echo $this->getLang('tasks');
-			echo '</h1>';
+			return;
 		}
+
+		if ($table == 'issues') {
+			switch ($report) {
+				case 'newest_to_oldest':
+				case 'by_last_activity':
+					echo '<h1>';
+					if ($report == 'newest_to_oldest') {
+						echo $this->getLang('issues_newest_to_oldest');
+					} else {
+						echo $this->getLang('issues_by_last_activity');
+					}
+					echo '</h1>';
+					$active = array();
+					foreach ($this->issue_states as $k => $v) {
+						if ( ! in_array($k, $this->blocking_states)) {
+							$active[] = array('state' => $k);
+						}
+					}
+					$doc = $issues->find(array('$or' => $active));
+					
+					if ($report == 'newest_to_oldest') {
+						$doc = $doc->sort(array('_id' => -1));
+					} else {
+						$doc = $doc->sort(array('last_mod_date' => -1));
+					}
+					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+				break;
+				case 'my_opened':
+					echo '<h1>';
+					echo $this->getLang('my_opened_issues');
+					echo '</h1>';
+
+					$active = array();
+					foreach ($this->issue_states as $k => $v) {
+						if ( ! in_array($k, $this->blocking_states)) {
+							$active[] = array('state' => $k);
+						}
+					}
+					$doc = $this->issues()->aggregate(
+					array('$project' => array(
+						'_id' => 1,
+						'state' => 1,
+						'type' => 1,
+						'title' => 1,
+						'coordinator' => 1,
+						'entity' => 1,
+						'reporter' => 1,
+						'date' => 1,
+						'last_mod_date' => 1,
+						'events' => 1,
+						'authors' => 1
+					)),
+					array('$unwind' => '$events'),
+					array('$group' => array('_id' => '$_id', 
+											'authors' => array('$addToSet' => '$events.author'),
+											'executors' => array('$addToSet' => '$events.executor'),
+											'last_mod_authors' => array('$addToSet' => '$events.last_mod_author'),
+											'state' => array('$first' => '$state'),
+											'reporter' => array('$first' => '$reporter'),
+											'entity' => array('$first' => '$entity'),
+											'type' => array('$first' => '$type'),
+											'title' => array('$first' => '$title'),
+											'coordinator' => array('$first' => '$coordinator'),
+											'date' => array('$first' => '$date'),
+											'last_mod_date' => array('$first' => '$last_mod_date'),
+											'state' => array('$first' => '$state')
+											)),
+					array('$match' => array('$or' => array(
+						array('authors' => array('$in' => array($INFO['client'])) ),
+						array('last_mod_authors' => array('$in' => array($INFO['client'])) ),
+						array('reporter' => $INFO['client']),
+						array('executors' => array('$in' => array($INFO['client'])) )
+					))),
+					array('$sort' => array('_id' => -1)),
+					array('$match' => array('$or' => $active))
+						);
+					$this->html_table_view($doc['result'], array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+				break;
+				case 'newest_than':
+					$this->vald = array();
+					if (isset($_POST['days']) && ! is_numeric($_POST['days'])) {
+						$this->vald['days'] = $this->getLang('vald_days_should_be_numeric');
+						$this->_handle_issues();
+					} else {
+						$post['days'] = (int)$_POST['days'];
+					}
+					echo '<h1>';
+					echo str_replace('%d', $post['days'], $this->getLang('issues_newest_than_rep'));
+					echo ' ';
+					echo $this->getLang('days');
+					echo '</h1>';
+					$today = mktime(0, 0, 0);
+					$date_limit = $today - $post['days']*24*60*60;
+					$doc = $issues->find(array('date' => array('$gt' => $date_limit)))->sort(array('_id' => -1));
+					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+				break;
+				default:
+					$this->msg = 'error_report_unknown';
+					$this->_handle_error($this->getLang($this->msg));
+				break;
+			}
+		} else if ($table == 'tasks') {
+			switch ($report) {
+				case 'newest_to_oldest':
+					echo '<h1>';
+					echo $this->getLang('tasks_newest_to_oldest');
+					echo '</h1>';
+
+					$active = array();
+					foreach ($this->issue_states as $k => $v) {
+						if ($k == 0) {
+							$active[] = array('state' => $k);
+						}
+					}
+					$doc = $this->issues()->aggregate(
+						array('$project' => array('_id' => 1, 'events' => 1)),
+						array('$unwind' => '$events'),
+						array('$match' => array('events.type' => 'task')),
+						array('$project' => array('_id' => 1, 'events' => 1,
+						'state' => '$events.state',
+						'id' => '$events.id',
+						'class' => '$events.class',
+						'cost' => '$events.cost',
+						'date' => '$events.date',
+						'executor' => '$events.executor',
+						)),
+						array('$match' => array('$or' => $active)),
+						array('$sort' => array('events.date' => -1))
+					);
+
+					$this->html_table_view($doc['result'], array('id', 'state', 'class', 'executor', 'date', 'cost'), 'tasks');
+				break;
+				case 'my_opened':
+					echo '<h1>';
+					echo $this->getLang('task_me_executor');
+					echo '</h1>';
+
+					$active = array();
+					foreach ($this->issue_states as $k => $v) {
+						if ($k == 0) {
+							$active[] = array('state' => $k);
+						}
+					}
+					$doc = $this->issues()->aggregate(
+						array('$project' => array('_id' => 1, 'events' => 1)),
+						array('$unwind' => '$events'),
+						array('$match' => array('events.type' => 'task')),
+						array('$project' => array('_id' => 1, 'events' => 1,
+						'state' => '$events.state',
+						'id' => '$events.id',
+						'class' => '$events.class',
+						'cost' => '$events.cost',
+						'date' => '$events.date',
+						'executor' => '$events.executor',
+						)),
+						array('$match' => array('$or' => $active)),
+						array('$match' => array('executor' => $INFO['client'])),
+						array('$sort' => array('events.date' => -1))
+					);
+
+					$this->html_table_view($doc['result'], array('id', 'state', 'class', 'executor', 'date', 'cost'), 'tasks');
+				break;
+				default:
+					$this->msg = 'error_report_unknown';
+					$this->_handle_error($this->getLang($this->msg));
+				break;
+			}
+		} else {
+			$this->msg = 'error_table_unknown';
+			$this->_handle_error($this->getLang($this->msg));
+		}
+	}
+	private function _handle_issues() {
+		echo '<h1>';
+		echo $this->getLang('issues');
+		echo '</h1>';
+		
+		if (isset($this->vald)) {
+			foreach ($this->vald as $error) {
+				echo '<div class="error">'.$error.'</div>';
+			}
+		}
+
+		if (isset($_POST['days'])) {
+			$value['days'] = $_POST['days'];
+		} else {
+			$value['days'] = '';
+		}
+
+		echo '<ol>';
+		echo '<li>';
+		echo '<a href="?do=bds_table&table=issues&report=newest_to_oldest">';
+		echo $this->getLang('newest_to_oldest');
+		echo '</a>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<a href="?do=bds_table&table=issues&report=by_last_activity">';
+		echo $this->getLang('by_last_activity');
+		echo '</a>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<a href="?do=bds_table&table=issues&report=my_opened">';
+		echo $this->getLang('my_opened');
+		echo '</a>';
+		echo '</li>';
+		echo '<li>';
+		echo $this->getLang('newest_than');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=issues&report=newest_than" method="post">';
+		echo '<input class="days" type="numeric" name="days" value="'.$value['days'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
+		echo '</li>';
+
+		echo '</ol>';
+
+		echo '<h1>';
+		echo $this->getLang('tasks');
+		echo '</h1>';
+
+		if (isset($this->vald_comment)) {
+			foreach ($this->vald_comment as $error) {
+				echo '<div class="error">'.$error.'</div>';
+			}
+		}
+
+		echo '<ol>';
+		echo '<li>';
+		echo '<a href="?do=bds_table&table=tasks&report=newest_to_oldest">';
+		echo $this->getLang('newest_to_oldest');
+		echo '</a>';
+		echo '</li>';
+
+		echo '<li>';
+		echo '<a href="?do=bds_table&table=tasks&report=my_opened">';
+		echo $this->getLang('me_executor');
+		echo '</a>';
+		echo '</li>';
+
+		echo '</ol>';
 	}
 
 	private function _handle_error($msg) {
-		echo '<span class="bds_error">'.$msg.'</span>';
+		echo '<div class="error">'.$msg.'</div>';
 	}
 
 	public function handle_act_preprocess(&$event, $param) {
@@ -1925,6 +2185,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_change_event':
 			case 'bds_issue_change_task':
 			case 'bds_issues':
+			case 'bds_table':
 			case 'bds_8d':
 				$event->stopPropagation();
 				$event->preventDefault();
@@ -2058,6 +2319,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									$post['state'] = 0;
 								}
 								$post['date'] = time();
+								$post['last_mod_date'] = $post['date'];
 
 								//it should be empty by default
 								$post['opinion'] = '';
@@ -2505,6 +2767,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issue_report':
 			case 'bds_issue_show':
 			case 'bds_issues':
+			case 'bds_table':
 			case 'bds_error':
 				$event->stopPropagation(); 
 				$event->preventDefault();  
@@ -2529,6 +2792,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				break;
 			case 'bds_issues':
 				$this->_handle_issues();
+				break;
+			case 'bds_table':
+				$this->_handle_table();
 				break;
 			case 'bds_error':
 				$this->_handle_error($this->getLang($this->error));
