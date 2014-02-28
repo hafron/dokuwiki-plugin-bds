@@ -640,8 +640,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	private function bds() {
 		if ($this->mongo == NULL) {
 			try {
+				$db_name = preg_replace('/[^a-zA-Z]/', '', $_SERVER['SERVER_NAME']);
+
 				$m = new MongoClient();
-				$this->mongo = $m->selectDB("bds");
+				$this->mongo = $m->selectDB($db_name);
 				return $this->mongo;
 			} catch (MongoException $e) {
 				//"action_plugin_bds:__construct: MongoDB: Cannot connect with 'bds' collection."
