@@ -63,7 +63,7 @@ jQuery(function() {
 	
 	if ($reason_row.length > 0) {
 		$reason_row.hide();
-		$select = jQuery("#task_form select[name=state]")
+		$select = jQuery("#task_form select[name=state]");
 		var prev_val = $select.val();
 		$select.change(function() {
 			if (jQuery(this).val() === prev_val) {
