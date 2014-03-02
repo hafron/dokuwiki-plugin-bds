@@ -97,6 +97,7 @@ $lang['vald_days_should_be_numeric'] = 'Ilość dni musi być liczbą.';
 $lang['type_client_complaint'] = 'reklamacja od klienta';
 $lang['type_noneconformity'] = 'niezgodność';
 $lang['type_supplier_complaint'] = 'reklamacja do dostawcy';
+$lang['type_risk'] = 'ryzyko';
 
 $lang['state_proposal'] = 'propozycja';
 $lang['state_opened'] = 'otwarta';

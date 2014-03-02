@@ -41,6 +41,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$this->issue_types[0] = $this->getLang('type_noneconformity');
 		$this->issue_types[1] = $this->getLang('type_client_complaint');
 		$this->issue_types[2] = $this->getLang('type_supplier_complaint');
+		$this->issue_types[3] = $this->getLang('type_risk');
 
 		$this->issue_states[0] = $this->getLang('state_proposal');
 		$this->issue_states[1] = $this->getLang('state_opened');
