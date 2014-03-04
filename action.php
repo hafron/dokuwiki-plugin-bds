@@ -1310,8 +1310,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$pdf->SetCellPadding(0);
 			// set default header daa
 
-            $logoSize = array();
-            $logo = tpl_getMediaFile(array(':wiki:logo.png', ':logo.png', 'images/logo.png'), false, $logoSize);
+			$logoSize = array();
+			$logo = tpl_getMediaFile(array(':wiki:logo.png', ':logo.png', 'images/logo.png'), false, $logoSize);
+			$logo = "http" . (($_SERVER['SERVER_PORT']==443) ? "s://" : "://") . $_SERVER['HTTP_HOST'] . $logo;
 
 			$header_string = '';
 			if ($conf['tagline']) {
