@@ -1319,8 +1319,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				$header_string = $conf['tagline']; 
 			}
 
+			//$mm_width = $logoSize[0]/3.779528;
+
 			//convent px to mm
-			$mm_width = $logoSize[0]/3.779528;
+			//count width basing on height
+			$mm_width = 20*$logoSize[0]/$logoSize[1];
 			$pdf->SetHeaderData($logo, $mm_width, $conf['title'], $header_string);
 
 			// set header and footer fonts
