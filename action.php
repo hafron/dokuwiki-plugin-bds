@@ -2008,16 +2008,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						$this->_handle_issues();
 					} else {
 						$post['days'] = (int)$_POST['days'];
+						echo '<h1>';
+						echo str_replace('%d', $post['days'], $this->getLang('issues_newest_than_rep'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['days']*24*60*60;
+						$doc = $issues->find(array('date' => array('$gt' => $date_limit)))->sort(array('_id' => -1));
+						$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
 					}
-					echo '<h1>';
-					echo str_replace('%d', $post['days'], $this->getLang('issues_newest_than_rep'));
-					echo ' ';
-					echo $this->getLang('days');
-					echo '</h1>';
-					$today = mktime(0, 0, 0);
-					$date_limit = $today - $post['days']*24*60*60;
-					$doc = $issues->find(array('date' => array('$gt' => $date_limit)))->sort(array('_id' => -1));
-					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
 				break;
 				default:
 					$this->msg = 'error_report_unknown';
@@ -2084,6 +2084,39 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					);
 
 					$this->html_table_view($doc['result'], array('id', 'state', 'class', 'executor', 'date', 'cost'), 'tasks');
+				break;
+				case 'newest_than':
+					$this->vald_comment = array();
+					if (isset($_POST['tdays']) && ! is_numeric($_POST['tdays'])) {
+						$this->vald_comment['tdays'] = $this->getLang('vald_days_should_be_numeric');
+						$this->_handle_issues();
+					} else {
+						$post['tdays'] = (int)$_POST['tdays'];
+						echo '<h1>';
+						echo str_replace('%d', $post['tdays'], $this->getLang('tasks_newest_than_rep'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['tdays']*24*60*60;
+
+						$doc = $this->issues()->aggregate(
+							array('$project' => array('_id' => 1, 'events' => 1)),
+							array('$unwind' => '$events'),
+							array('$match' => array('events.type' => 'task')),
+							array('$project' => array('_id' => 1, 'events' => 1,
+							'state' => '$events.state',
+							'id' => '$events.id',
+							'class' => '$events.class',
+							'cost' => '$events.cost',
+							'date' => '$events.date',
+							'executor' => '$events.executor',
+							)),
+							array('$match' => array('events.date' => array('$gt' => $date_limit))),
+							array('$sort' => array('events.date' => -1))
+						);
+					$this->html_table_view($doc['result'], array('id', 'state', 'class', 'executor', 'date', 'cost'), 'tasks');
+					}
 				break;
 				default:
 					$this->msg = 'error_report_unknown';
@@ -2165,6 +2198,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '<a href="?do=bds_table&table=tasks&report=my_opened">';
 		echo $this->getLang('me_executor');
 		echo '</a>';
+		echo '</li>';
+
+		echo '<li>';
+		echo $this->getLang('newest_than');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=tasks&report=newest_than" method="post">';
+		echo '<input class="days" type="numeric" name="tdays" value="'.$value['days'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
 		echo '</li>';
 
 		echo '</ol>';

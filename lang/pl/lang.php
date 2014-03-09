@@ -206,6 +206,7 @@ $lang['true_date'] = 'Data';
 $lang['newest_to_oldest'] = 'Otwarte od najnowszych do najstarszych';
 $lang['issues_newest_to_oldest'] = 'Problemy otwarte od najnowszych do najstarszych';
 $lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszych';
+$lang['tasks_newest_than_rep'] = 'Zadania nowsze niż %d';
 
 $lang['newest_than'] = 'Wszystkie nowsze niż';
 $lang['issues_newest_than'] = 'Problemy nowsze niż';
