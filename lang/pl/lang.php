@@ -28,7 +28,7 @@ $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 $lang['entity'] = 'Podmiot';
 
 $lang['opinion'] = 'Ocena skuteczności';
-$lang['root_cause'] = 'Grupa Przyczyn';
+$lang['root_cause'] = 'Grupa przyczyn';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
