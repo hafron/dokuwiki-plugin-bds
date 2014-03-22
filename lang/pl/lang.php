@@ -28,7 +28,7 @@ $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 $lang['entity'] = 'Podmiot';
 
 $lang['opinion'] = 'Ocena skuteczności';
-$lang['root_cause'] = 'Przyczyna źródłowa';
+$lang['root_cause'] = 'Grupa Przyczyn';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
@@ -117,7 +117,7 @@ $lang['issue_closed'] = 'Działanie zostało zamknięte %d, przez %u, dalsze zmi
 $lang['reopen_issue'] = 'Zmień status problemu';
 $lang['add'] = 'Dodaj';
 
-$lang['class'] = 'Klasa';
+$lang['class'] = 'Działanie';
 
 $lang['open'] = 'Otwarte';
 $lang['closed'] = 'Zamknięte';
