@@ -27,4 +27,21 @@ class helper_plugin_bds extends dokuwiki_plugin {
 		}
 		return $sanitized;
 	}
+	public function html_anchor_to_event($issue, $event, $show_issue=false, $only_anchor=false) {
+		$value = '';
+		if ($show_issue == true) {
+			$value .= '#'.$issue;
+			if ($event != 0) {
+				$value .= ':';
+			}
+		}
+		if ($event != 0) {
+			$value .= $event;
+			$href = '#'.$event;
+		}
+		if ($only_anchor == false) {
+			$href = '?do=bds_issue_show&bds_issue_id='.$issue.$href;
+		}
+		return '<a href="'.$href.'" class="history_anchor">'.$value.'</a>';
+	}
 }

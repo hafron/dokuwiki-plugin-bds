@@ -522,17 +522,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 	private function html_anchor_to_event($issue, $event, $show_issue=false, $only_anchor=false) {
-		$value = '';
-		if ($show_issue == true) {
-			$value .= '#'.$issue.':';
-		}
-		$value .= $event;
-
-		$href = '#'.$event;
-		if ($only_anchor == false) {
-			$href = '?do=bds_issue_show&bds_issue_id='.$issue.$href;
-		}
-		return '<a href="'.$href.'" class="history_anchor">'.$value.'</a>';
+		$bds = $this->loadHelper('bds');
+		return $bds->html_anchor_to_event($issue, $event, $show_issue, $only_anchor);
 	}
 	private function string_time_to_now($date) {
 		return $this->string_format_field('date', $date);
