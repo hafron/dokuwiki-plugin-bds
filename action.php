@@ -1163,7 +1163,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo $this->getLang('entity');
 		echo ': ';
 		echo '</strong>';
-		echo $this->string_format_field('entity', $cursor['entinty']);
+		echo $this->string_format_field('entity', $cursor['entity']);
 		echo '</td>';
 		echo '</tr>';
 
