@@ -226,3 +226,5 @@ $lang['by_last_activity'] = 'Otwarte według najbardziej niedawno zmienianych';
 $lang['issues_by_last_activity'] = 'Problemy otwarte według najbardziej niedawno zmienianych';
 
 $lang['ns'] = 'n.d.';
+
+$lang['ended'] = 'Zakończone';

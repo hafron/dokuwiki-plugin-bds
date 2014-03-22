@@ -1111,7 +1111,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo $this->getLang('date');
 		echo '</th>';
 		echo '<th>';
-		echo $this->getLang('state');
+		echo $this->getLang('ended');
 		echo '</th>';
 		echo '<th>';
 		echo $this->getLang('cost');
@@ -1127,7 +1127,14 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			echo $this->string_format_field('true_date', $task['date']);
 			echo '</td>';
 			echo '<td>';
-			echo $this->task_states[$task['state']];
+			if ($task['state'] == 0) {
+				echo '---';
+			} else {
+				echo $this->string_format_field('true_date', $task['last_mod_date']);
+				echo ' (';
+				echo $this->task_states[$task['state']];
+				echo ')';
+			}
 			echo '</td>';
 			echo '<td>';
 			echo $this->string_format_field('cost', $task['cost']);
@@ -2258,7 +2265,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							if ( ! report.tasks[event.class]) {
 								report.tasks[event.class] = [];
 							}
-							(report.tasks[event.class]).push({executor: event.executor, content: event.content, date: event.date, state: event.state, cost: event.cost});
+							(report.tasks[event.class]).push({executor: event.executor, content: event.content, date: event.date, state: event.state, cost: event.cost, last_mod_date: event.last_mod_date});
 						}
 					}
 					emit(this._id, report);
