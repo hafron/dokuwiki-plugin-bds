@@ -2220,6 +2220,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	public function handle_act_preprocess(&$event, $param) {
 		global $INFO;
 		global $auth;
+
+		if (plugin_isdisabled('indexmenu')) {
+			//disable indexmenu
+			plugin_enable('indexmenu');
+		}
+
 		if ( ! $this->user_can_view()) {
 			return false;
 		}
