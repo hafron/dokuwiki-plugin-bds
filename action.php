@@ -2239,6 +2239,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_8d':
 				$event->stopPropagation();
 				$event->preventDefault();
+				//disable indexmenu
+				plugin_disable('indexmenu');
 				break;
 		}
 		switch($event->data) {
