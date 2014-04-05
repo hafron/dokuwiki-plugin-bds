@@ -39,9 +39,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 	}
 	public function __construct() {
 		$this->issue_types[0] = $this->getLang('type_noneconformity');
-		$this->issue_types[1] = $this->getLang('type_client_complaint');
-		$this->issue_types[2] = $this->getLang('type_supplier_complaint');
-		$this->issue_types[3] = $this->getLang('type_risk');
+		$this->issue_types[1] = $this->getLang('type_complaint');
+		$this->issue_types[2] = $this->getLang('type_risk');
 
 		$this->issue_states[0] = $this->getLang('state_proposal');
 		$this->issue_states[1] = $this->getLang('state_opened');
@@ -1541,9 +1540,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '</span>';
 					echo '</h2>';
 					if ( ! in_array($cursor['state'], $this->blocking_states)) {
-						echo '<a class="bds_inline_button" href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&replay_to='.$event['id'].'#comment_form">↳ '.$this->getLang('replay').'</a>';
-						echo ' ';
-						if ($this->user_is_moderator()) {
+						if ($event['type'] != 'task') {
+							echo '<a class="bds_inline_button" href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&replay_to='.$event['id'].'#comment_form">↳ '.$this->getLang('replay').'</a>';
+							echo ' ';
+						}
+						if ($this->user_is_moderator() && $event['type'] != 'task') {
 							echo '<a class="bds_inline_button" href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&replay_by_task='.$event['id'].'#task_form">↳ '.$this->getLang('replay_by_task').'</a>';
 							echo ' ';
 						}

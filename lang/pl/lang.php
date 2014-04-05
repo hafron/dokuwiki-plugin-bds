@@ -28,7 +28,7 @@ $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 $lang['entity'] = 'Podmiot';
 
 $lang['opinion'] = 'Ocena skuteczności';
-$lang['root_cause'] = 'Grupa przyczyn';
+$lang['root_cause'] = 'Kategoria przyczyny';
 
 $lang['save'] = 'Zapisz';
 $lang['proposal'] = 'propozycja';
@@ -40,7 +40,7 @@ $lang['none'] = 'brak';
 $lang['changes_history'] = 'Historia zmian';
 $lang['add_comment'] = 'Dodaj komentarz';
 $lang['add_task'] = 'Dodaj zadanie';
-$lang['change_issue'] = 'Zmień zgłoszenie';
+$lang['change_issue'] = 'Zmień zgłoszenie problemu';
 
 $lang['changed'] = 'Zmieniono';
 $lang['changed_field'] = 'zmieniono';
@@ -94,9 +94,8 @@ $lang['vald_class_required'] = 'Musisz podać klasę zadania.';
 $lang['vald_days_should_be_numeric'] = 'Ilość dni musi być liczbą.';
 
 
-$lang['type_client_complaint'] = 'reklamacja od klienta';
+$lang['type_complaint'] = 'reklamacja';
 $lang['type_noneconformity'] = 'niezgodność';
-$lang['type_supplier_complaint'] = 'reklamacja do dostawcy';
 $lang['type_risk'] = 'ryzyko';
 
 $lang['state_proposal'] = 'propozycja';
@@ -222,8 +221,8 @@ $lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
 
 $lang['show'] = 'Pokaż';
 
-$lang['by_last_activity'] = 'Otwarte według najbardziej niedawno zmienianych';
-$lang['issues_by_last_activity'] = 'Problemy otwarte według najbardziej niedawno zmienianych';
+$lang['by_last_activity'] = 'Otwarte według ostatnio zmienionych';
+$lang['issues_by_last_activity'] = 'Problemy otwarte według ostatnio zmienionych';
 
 $lang['ns'] = 'n.d.';
 
