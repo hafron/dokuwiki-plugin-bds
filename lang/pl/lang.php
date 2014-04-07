@@ -12,7 +12,7 @@ $lang['tasks'] = 'Zadania';
 $lang['report_issue'] = 'Zgłoś problem';
 $lang['id'] = 'Nr';
 $lang['_id'] = 'Nr';
-$lang['type'] = 'Typ';
+$lang['type'] = 'Typ problemu';
 $lang['title'] = 'Tytuł';
 $lang['state'] = 'Status';
 $lang['reporter'] = 'Zgłaszający';
@@ -25,7 +25,7 @@ $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 
-$lang['entity'] = 'Podmiot';
+$lang['entity'] = 'Źródłó zgłoszenia';
 
 $lang['opinion'] = 'Ocena skuteczności';
 $lang['root_cause'] = 'Kategoria przyczyny';
@@ -138,7 +138,7 @@ $lang['comment_changed'] = 'Komentarz zmieniony';
 $lang['replay_by_task'] = 'Odpowiedz zadaniem';
 $lang['change_made'] = 'Zmiana wprowadzona';
 
-$lang['change_comment'] = 'Zmodyfikuj komentarz';
+$lang['change_comment'] = 'Popraw komentarz';
 $lang['change_comment_button'] = 'Popraw komentarz';
 $lang['change_task'] = 'Zmodyfikuj zadanie';
 $lang['change_task_button'] = 'Zmień zadanie';
@@ -155,9 +155,9 @@ $lang['task'] = 'Zadanie';
 $lang['change_state_button'] = 'Zmień status';
 
 
-$lang['correction'] = 'Korekcja';
-$lang['corrective_action'] = 'Działania korygujące';
-$lang['preventive_action'] = 'Działania zapobiegawcze';
+$lang['correction'] = 'Korekcyjne';
+$lang['corrective_action'] = 'Korygujące';
+$lang['preventive_action'] = 'Zapobiegawcze';
 
 $lang['none_comment'] = 'brak(komentarz)';
 $lang['manpower'] = 'Ludzie';
