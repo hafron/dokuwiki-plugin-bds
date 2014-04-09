@@ -1117,15 +1117,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '</th>';
 		echo '</tr>';
 		
+		$style = '';
 		foreach ($cursor['tasks'][$type] as $task) {
 			echo '<tr>';
-			echo '<td>';
+			echo '<td '.$style.'>';
 			echo $this->string_format_field('name', $task['executor']);
 			echo '</td>';
-			echo '<td>';
+			echo '<td '.$style.'>';
 			echo $this->string_format_field('true_date', $task['date']);
 			echo '</td>';
-			echo '<td>';
+			echo '<td '.$style.'>';
 			if ($task['state'] == 0) {
 				echo '---';
 			} else {
@@ -1135,16 +1136,41 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo ')';
 			}
 			echo '</td>';
-			echo '<td>';
+			echo '<td '.$style.'>';
 			echo $this->string_format_field('cost', $task['cost']);
 			echo '</td>';
 			echo '</tr>';
 
 			echo '<tr>';
 			echo '<td colspan="4">';
+			echo '<strong>';
+			echo $this->getLang('description');
+			echo ':</strong>';
 			echo $this->wiki_parse($task['content']);
 			echo '</td>';
 			echo '</tr>';
+			if ($task['reason'] != '') {
+				echo '<tr>';
+				echo '<td colspan="4">';
+				echo '<strong>';
+				switch($task['state']) {
+					case 0:
+						echo $this->getLang('reason_reopen');
+					break;
+					case 1:
+						echo $this->getLang('reason_done');
+					break;
+					case 2:
+						echo $this->getLang('reason_reject');
+					break;
+				}
+				echo ':</strong>';
+				echo $this->wiki_parse($task['reason']);
+				echo '</td>';
+				echo '</tr>';
+			}
+			/*change style after first row */
+			$style = 'style="border-top: 2px"';
 		}
 		echo '</table>';
 	}
@@ -2274,7 +2300,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							if ( ! report.tasks[event.class]) {
 								report.tasks[event.class] = [];
 							}
-							(report.tasks[event.class]).push({executor: event.executor, content: event.content, date: event.date, state: event.state, cost: event.cost, last_mod_date: event.last_mod_date});
+							(report.tasks[event.class]).push({executor: event.executor, content: event.content, date: event.date, state: event.state, cost: event.cost, last_mod_date: event.last_mod_date, reason: event.reason});
 						}
 					}
 					emit(this._id, report);
