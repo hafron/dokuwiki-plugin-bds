@@ -24,6 +24,7 @@ $lang['last_mod_date'] = 'Ostatnio zmienione';
 $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
+$lang['opened_tasks'] = 'Zadania otwarte';
 
 $lang['entity'] = 'Źródłó zgłoszenia';
 

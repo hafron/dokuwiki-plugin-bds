@@ -1966,14 +1966,33 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$active[] = array('state' => $k);
 						}
 					}
-					$doc = $issues->find(array('$or' => $active));
+					//$doc = $issues->find(array('$or' => $active));
+					$doc = $issues->aggregate(
+						array('$project' => array(
+							'_id' => 1,
+							'state' => 1,
+							'type' => 1,
+							'title' => 1,
+							'coordinator' => 1,
+							'entity' => 1,
+							'reporter' => 1,
+							'date' => 1,
+							'last_mod_date' => 1,
+							'events' => 1,
+							'authors' => 1
+						)),
+						array('$unwind' => '$events'),
+						array('$group' => array('_id' => '$_id', 
+											)),
+						array('$match' => array('$or' => $active))
+					);
 					
 					if ($report == 'newest_to_oldest') {
 						$doc = $doc->sort(array('_id' => -1));
 					} else {
 						$doc = $doc->sort(array('last_mod_date' => -1));
 					}
-					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 				break;
 				case 'my_opened':
 					echo '<h1>';
