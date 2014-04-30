@@ -1,60 +1,60 @@
 <?php
-$lang['bds'] = 'Base of eliminating the risks';
-$lang['bds_short'] = 'BEZ';
-$lang['bds_timeline'] = 'History';
-$lang['bds_issues'] = 'Issues and tasks';
-$lang['bds_issue_report'] = 'Report issue';
-$lang['bds_reports'] = 'Reports';
+$lang['bds'] = 'Baza Doskonalenia Systemu';
+$lang['bds_short'] = 'BDS';
+$lang['bds_timeline'] = 'Historia';
+$lang['bds_issues'] = 'Problemy i zadania';
+$lang['bds_issue_report'] = 'Zgłoś problem';
+$lang['bds_reports'] = 'Raporty';
 
-$lang['issues'] = 'Issues';
-$lang['tasks'] = 'Tasks';
+$lang['issues'] = 'Problemy';
+$lang['tasks'] = 'Zadania';
 
-$lang['report_issue'] = 'Report issue';
-$lang['id'] = 'Id';
-$lang['_id'] = 'Id';
-$lang['type'] = 'Issue type';
-$lang['title'] = 'Title';
-$lang['state'] = 'State';
-$lang['reporter'] = 'Reporter';
-$lang['executor'] = 'Executor';
-$lang['coordinator'] = 'Coordinator';
-$lang['description'] = 'Description';
-$lang['date'] = 'Created';
-$lang['last_mod_date'] = 'Last modified';
-$lang['opened_for'] = 'Opened for';
-$lang['last_modified'] = 'Last modified';
-$lang['last_modified_by'] = 'Last modified by';
-$lang['opened_tasks'] = 'Opened tasks';
+$lang['report_issue'] = 'Zgłoś problem';
+$lang['id'] = 'Nr';
+$lang['_id'] = 'Nr';
+$lang['type'] = 'Typ problemu';
+$lang['title'] = 'Tytuł';
+$lang['state'] = 'Status';
+$lang['reporter'] = 'Zgłaszający';
+$lang['executor'] = 'Wykonawca';
+$lang['coordinator'] = 'Koordynator';
+$lang['description'] = 'Opis';
+$lang['date'] = 'Utworzone';
+$lang['last_mod_date'] = 'Ostatnio zmienione';
+$lang['opened_for'] = 'Otwarte od';
+$lang['last_modified'] = 'Ostatnio zmienione';
+$lang['last_modified_by'] = 'Ostatnio zmieniony przez';
+$lang['opened_tasks'] = 'Zadania otwarte';
 
-$lang['entity'] = 'Root cause';
+$lang['entity'] = 'Źródłó zgłoszenia';
 
-$lang['opinion'] = 'Evaluation of effectiveness';
-$lang['root_cause'] = 'Cause category';
+$lang['opinion'] = 'Ocena skuteczności';
+$lang['root_cause'] = 'Kategoria przyczyny';
 
-$lang['save'] = 'Save';
-$lang['proposal'] = 'proposal';
-$lang['reported_by'] = 'reported by';
-$lang['executor_not_specified'] = 'not specified';
-$lang['account_removed'] = 'account removed';
-$lang['none'] = 'none';
+$lang['save'] = 'Zapisz';
+$lang['proposal'] = 'propozycja';
+$lang['reported_by'] = 'zgłoszona przez';
+$lang['executor_not_specified'] = 'nie przypisany';
+$lang['account_removed'] = 'konto usunięte';
+$lang['none'] = 'brak';
 
-$lang['changes_history'] = 'Timeline';
-$lang['add_comment'] = 'Add comment';
-$lang['add_task'] = 'Add task';
-$lang['change_issue'] = 'Change issue';
+$lang['changes_history'] = 'Historia zmian';
+$lang['add_comment'] = 'Dodaj komentarz';
+$lang['add_task'] = 'Dodaj zadanie';
+$lang['change_issue'] = 'Zmień zgłoszenie problemu';
 
-$lang['changed'] = 'Changed';
-$lang['changed_field'] = 'changed';
-$lang['by'] = 'by';
-$lang['from'] = 'from';
-$lang['to'] = 'to';
-$lang['diff'] = 'diffs';
-$lang['comment'] = 'Comment';
-$lang['replay'] = 'Replay';
-$lang['edit'] = 'Edit';
-$lang['change_task_state'] = 'Change state of the task';
-$lang['replay_to'] = 'Replay to';
-$lang['quoted_in'] = 'Replays';
+$lang['changed'] = 'Zmieniono';
+$lang['changed_field'] = 'zmieniono';
+$lang['by'] = 'przez';
+$lang['from'] = 'z';
+$lang['to'] = 'na';
+$lang['diff'] = 'różnice';
+$lang['comment'] = 'Skomentuj';
+$lang['replay'] = 'Odpowiedz';
+$lang['edit'] = 'Edytuj';
+$lang['change_task_state'] = 'Zmień status zadania';
+$lang['replay_to'] = 'Odpowiedź na';
+$lang['quoted_in'] = 'Odpowiedzi';
 
 $lang['error_issue_id_not_specifed'] = 'Nie podałeś numeru wiersza, który chcesz odczytać.';
 $lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istnieje.';
@@ -95,102 +95,102 @@ $lang['vald_class_required'] = 'Musisz podać klasę zadania.';
 $lang['vald_days_should_be_numeric'] = 'Ilość dni musi być liczbą.';
 
 
-$lang['type_complaint'] = 'complaint';
-$lang['type_noneconformity'] = 'nonconformity';
-$lang['type_risk'] = 'risk';
+$lang['type_complaint'] = 'reklamacja';
+$lang['type_noneconformity'] = 'niezgodność';
+$lang['type_risk'] = 'ryzyko';
 
-$lang['state_proposal'] = 'proposal';
-$lang['state_opened'] = 'opened';
-$lang['state_rejected'] = 'rejected';
-$lang['state_effective'] = 'effective closed';
-$lang['state_ineffective'] = 'uneffective closed';
+$lang['state_proposal'] = 'propozycja';
+$lang['state_opened'] = 'otwarta';
+$lang['state_rejected'] = 'odrzucona';
+$lang['state_effective'] = 'skutecznie zamknięta';
+$lang['state_ineffective'] = 'nieskutecznie zamknięta';
 
 
-$lang['just_now'] = 'just now';
-$lang['seconds'] = 'sec.';
+$lang['just_now'] = 'przed chwilą';
+$lang['seconds'] = 'sek.';
 $lang['minutes'] = 'min.';
-$lang['hours'] = 'h';
-$lang['days'] = 'ds';
-$lang['ago'] = 'ago';
+$lang['hours'] = 'godz.';
+$lang['days'] = 'dn.';
+$lang['ago'] = 'temu';
 
-$lang['issue_closed'] = 'Issue was closed %d, by %u, you no longer can modify it..';
-$lang['reopen_issue'] = 'Change problem state';
-$lang['add'] = 'Add';
+$lang['issue_closed'] = 'Działanie zostało zamknięte %d, przez %u, dalsze zmiany nie są już możliwe.';
+$lang['reopen_issue'] = 'Zmień status problemu';
+$lang['add'] = 'Dodaj';
 
-$lang['class'] = 'Class';
+$lang['class'] = 'Działanie';
 
-$lang['open'] = 'Opened';
-$lang['closed'] = 'Closed';
+$lang['open'] = 'Otwarte';
+$lang['closed'] = 'Zamknięte';
 
-$lang['cost'] = 'Cost';
-$lang['executor'] = 'Executive';
+$lang['cost'] = 'Koszt(zł)';
+$lang['executor'] = 'Wykonawca';
 
-$lang['task_state'] = 'State';
-$lang['reason'] = 'Reason';
+$lang['task_state'] = 'Status';
+$lang['reason'] = 'Powód zmiany statusu';
 
-$lang['task_added'] = 'Task added';
-$lang['task_changed'] = 'Task changed';
-$lang['task_rejected_header'] = 'Task rejected';
-$lang['task_closed'] = 'Task closed';
-$lang['task_reopened'] = 'Task opened again';
-$lang['comment_added'] = 'Comment added';
-$lang['comment_changed'] = 'Comment changed';
+$lang['task_added'] = 'Zadanie dodane';
+$lang['task_changed'] = 'Zadanie zmienione';
+$lang['task_rejected_header'] = 'Zadanie odrzucone';
+$lang['task_closed'] = 'Zadanie zakończone';
+$lang['task_reopened'] = 'Zadanie ponownie otwarte';
+$lang['comment_added'] = 'Komentarz dodany';
+$lang['comment_changed'] = 'Komentarz zmieniony';
 
-$lang['replay_by_task'] = 'Replay by task';
-$lang['change_made'] = 'Change made';
+$lang['replay_by_task'] = 'Odpowiedz zadaniem';
+$lang['change_made'] = 'Zmiana wprowadzona';
 
-$lang['change_comment'] = 'Modify comment';
-$lang['change_comment_button'] = 'Modify comment';
-$lang['change_task'] = 'Modify task';
-$lang['change_task_button'] = 'Modify task';
+$lang['change_comment'] = 'Popraw komentarz';
+$lang['change_comment_button'] = 'Popraw komentarz';
+$lang['change_task'] = 'Zmodyfikuj zadanie';
+$lang['change_task_button'] = 'Zmień zadanie';
 
-$lang['preview'] = 'oledr';
-$lang['next'] = 'newer';
+$lang['preview'] = 'starsze';
+$lang['next'] = 'nowsze';
 
-$lang['version'] = 'Version';
+$lang['version'] = 'Wersja';
 
-$lang['comment_noun'] = 'Comment';
-$lang['change'] = 'Change';
-$lang['task'] = 'Task';
+$lang['comment_noun'] = 'Komentarz';
+$lang['change'] = 'Zmiana';
+$lang['task'] = 'Zadanie';
 
-$lang['change_state_button'] = 'Change state';
+$lang['change_state_button'] = 'Zmień status';
 
 
-$lang['correction'] = 'Correction';
-$lang['corrective_action'] = 'Corrective action';
-$lang['preventive_action'] = 'Preventive action';
+$lang['correction'] = 'Korekcyjne';
+$lang['corrective_action'] = 'Korygujące';
+$lang['preventive_action'] = 'Zapobiegawcze';
 
-$lang['none_comment'] = 'none(comment)';
-$lang['manpower'] = 'Manpower';
-$lang['method'] = 'Method';
-$lang['machine'] = 'Machine';
-$lang['material'] = 'Material';
-$lang['managment'] = 'Managment';
-$lang['measurement'] = 'Measurement';
-$lang['money'] = 'Money';
-$lang['environment'] = 'Enviroment';
+$lang['none_comment'] = 'brak(komentarz)';
+$lang['manpower'] = 'Ludzie';
+$lang['method'] = 'Metoda';
+$lang['machine'] = 'Maszyna';
+$lang['material'] = 'Materiał';
+$lang['managment'] = 'Zarządzanie';
+$lang['measurement'] = 'Pomiar';
+$lang['money'] = 'Pieniądze';
+$lang['environment'] = 'Środowisko';
 
-$lang['task_opened'] = 'Opened';
-$lang ['task_done'] = 'Finished';
-$lang ['task_rejected'] = 'Rejected';
+$lang['task_opened'] = 'Otwarte';
+$lang ['task_done'] = 'Wykonane';
+$lang ['task_rejected'] = 'Odrzucone';
 
-$lang['reason_reopen'] = 'Reopen reason'; 
-$lang['reason_done']  = 'Finished reason';
-$lang['reason_reject'] = 'Rejecton reason';
+$lang['reason_reopen'] = 'Przyczyna ponownego otwarcia'; 
+$lang['reason_done']  = 'Przyczyna zakończenia';
+$lang['reason_reject'] = 'Przyczyna odrzucenia';
 
-$lang['issue_created'] = 'Issue created';
+$lang['issue_created'] = 'Utworzono zgłoszenie';
 
-$lang['issue_closed'] = 'Problem closed';
-$lang['issue_reopened'] = 'Issue reopened';
+$lang['issue_closed'] = 'Zamknięto problem';
+$lang['issue_reopened'] = 'Ponownie otwarto problem';
 
-$lang['today'] = 'Today';
-$lang['yesterday'] = 'Yesterday';
+$lang['today'] = 'Dzisiaj';
+$lang['yesterday'] = 'Wczoraj';
 
-$lang['task_for'] = 'for';
-$lang['content'] = 'Content';
+$lang['task_for'] = 'dla';
+$lang['content'] = 'Opis';
 
-$lang['8d_report'] = '8D report';
-$lang['8d_report_for'] = 'for';
+$lang['8d_report'] = 'Raport 8D';
+$lang['8d_report_for'] = 'dla';
 $lang['open_date'] = 'Data otwarcia';
 $lang['2d'] = '2D - Problem';
 $lang['3d'] = '3D - Przyczyna';
@@ -200,31 +200,31 @@ $lang['6d'] = '6D - Działania zapobiegawcze';
 $lang['7d'] = '7D - Ocena skuteczności';
 $lang['8d'] = '8D - Zakończenie';
 
-$lang['cost_total'] = 'Final cost';
-$lang['true_date'] = 'Date';
+$lang['cost_total'] = 'Koszt całkowity(zł)';
+$lang['true_date'] = 'Data';
 
-$lang['newest_to_oldest'] = 'Opened newest to oldest';
-$lang['issues_newest_to_oldest'] = 'Issues opened newest to oldest';
-$lang['tasks_newest_to_oldest'] = 'Task opened newest to oldest';
-$lang['tasks_newest_than_rep'] = 'Tasks never than %d';
+$lang['newest_to_oldest'] = 'Otwarte od najnowszych do najstarszych';
+$lang['issues_newest_to_oldest'] = 'Problemy otwarte od najnowszych do najstarszych';
+$lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszych';
+$lang['tasks_newest_than_rep'] = 'Zadania nowsze niż %d';
 
-$lang['newest_than'] = 'All newer than';
-$lang['issues_newest_than'] = 'Isses newer than';
+$lang['newest_than'] = 'Wszystkie nowsze niż';
+$lang['issues_newest_than'] = 'Problemy nowsze niż';
 
-$lang['my_opened_issues'] = 'Opened issues that I am involved';
-$lang['my_opened'] = 'Opened that I am involved';
+$lang['my_opened_issues'] = 'Problemy otwarte w które jestem zaangażowany';
+$lang['my_opened'] = 'Otwarte w które jestem zaangażowany';
 
-$lang['me_executor'] = 'Assigned to me';
-$lang['task_me_executor'] = 'Tasks assigned to me';
+$lang['me_executor'] = 'Przypisane do mnie';
+$lang['task_me_executor'] = 'Zadania przypisane do mnie';
 
-$lang['issues_newest_than'] = 'All newer than';
-$lang['issues_newest_than_rep'] = 'Issues newen than %d';
+$lang['issues_newest_than'] = 'Wszystkie nowsze problemy niż';
+$lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
 
-$lang['show'] = 'Show';
+$lang['show'] = 'Pokaż';
 
-$lang['by_last_activity'] = 'Opened by lastest activity';
-$lang['issues_by_last_activity'] = 'Issues opened by lastest activity';
+$lang['by_last_activity'] = 'Otwarte według ostatnio zmienionych';
+$lang['issues_by_last_activity'] = 'Problemy otwarte według ostatnio zmienionych';
 
-$lang['ns'] = 'n.s.';
+$lang['ns'] = 'n.d.';
 
-$lang['ended'] = 'Finished';
+$lang['ended'] = 'Zakończone';

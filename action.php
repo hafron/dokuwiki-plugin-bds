@@ -1936,6 +1936,82 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 		echo '</table>';
 	}
+	private function get_issues_with_states($report, $issues, $active, $id_indexed=false) {
+
+						if ($report == 'newest_to_oldest') {
+							$sort = array('_id' => -1);
+						} else {
+							$sort = array('last_mod_date' => -1);
+						}
+
+						//wybierz te dokumenty, które mają przypisane zadania
+						$doc = $issues->aggregate(
+							array('$project' => array(
+								'_id' => 1,
+								'state' => 1,
+								'type' => 1,
+								'title' => 1,
+								'coordinator' => 1,
+								'entity' => 1,
+								'reporter' => 1,
+								'date' => 1,
+								'last_mod_date' => 1,
+								'events' => 1,
+								'authors' => 1,
+								'tasks' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.type' => 'task'), array('events.state' => 0)))),
+							array('$match' => array('$or' => $active)),
+							array('$group' => array('_id' =>
+													array('_id' => '$_id',
+														'type' => '$type',
+														'state' => '$state',
+														'title' => '$title',
+														'coordinator' => '$coordinator',
+														'entity' => '$entity',
+														'reporter' => '$reporter',
+														'date' => '$date',
+														'last_mod_date' => '$last_mod_date',
+													),
+													'opened_tasks' => array('$sum' => 1)
+													)),
+							array('$sort' => $sort)
+						);
+						//wybierz wszystkie dokumenty
+						$doc2 = $issues->find(array('$or' => $active));
+
+						if ($report == 'newest_to_oldest') {
+							$doc2->sort(array('_id' => -1));
+						} else {
+							$doc2->sort(array('last_mod_date' => -1));
+						}
+
+						//połącz we wspólną tablicę
+						$result = array();
+						foreach ($doc['result'] as $v) {
+							$id = $v['_id']['_id'];	
+							$result[$id] = $v['_id'];
+							$result[$id]['opened_tasks'] = $v['opened_tasks'];
+						}
+
+						$res = array();
+						$i = 0;
+						foreach($doc2 as $k => $v) {
+							if ($id_indexed == true) {
+								$i = $v['_id'];
+							}
+							if (isset($result[$v['_id']])) {
+								$res[$i] = $result[$v['_id']];
+							} else {
+								$v['opened_tasks'] = 0;
+								$res[$i] = $v;
+							}
+							$i++;
+						}
+						return $res;
+					}
+					
 	private function _handle_table() {
 		global $auth, $INFO;
 
@@ -1966,33 +2042,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$active[] = array('state' => $k);
 						}
 					}
-					//$doc = $issues->find(array('$or' => $active));
-					$doc = $issues->aggregate(
-						array('$project' => array(
-							'_id' => 1,
-							'state' => 1,
-							'type' => 1,
-							'title' => 1,
-							'coordinator' => 1,
-							'entity' => 1,
-							'reporter' => 1,
-							'date' => 1,
-							'last_mod_date' => 1,
-							'events' => 1,
-							'authors' => 1
-						)),
-						array('$unwind' => '$events'),
-						array('$group' => array('_id' => '$_id', 
-											)),
-						array('$match' => array('$or' => $active))
-					);
+
+					$res = $this->get_issues_with_states($report, $issues, $active, false);
 					
-					if ($report == 'newest_to_oldest') {
-						$doc = $doc->sort(array('_id' => -1));
-					} else {
-						$doc = $doc->sort(array('last_mod_date' => -1));
-					}
-					$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
+					$this->html_table_view($res, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 				break;
 				case 'my_opened':
 					echo '<h1>';
@@ -2043,7 +2096,16 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					array('$sort' => array('_id' => -1)),
 					array('$match' => array('$or' => $active))
 						);
-					$this->html_table_view($doc['result'], array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+					
+					$res = $this->get_issues_with_states($report, $issues, $active, true);
+					$result = array();
+
+					foreach ($doc['result'] as $v) {
+						$rec = $v['_id'];
+						$result[] = $res[$rec];
+					}
+
+					$this->html_table_view($result, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 				break;
 				case 'newest_than':
 					$this->vald = array();
@@ -2059,8 +2121,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						echo '</h1>';
 						$today = mktime(0, 0, 0);
 						$date_limit = $today - $post['days']*24*60*60;
+
 						$doc = $issues->find(array('date' => array('$gt' => $date_limit)))->sort(array('_id' => -1));
-						$this->html_table_view($doc, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date'));
+
+						$active = array();
+						foreach ($this->issue_states as $k => $v) {
+							$active[] = array('state' => $k);
+						}
+
+						$res = $this->get_issues_with_states('newest_to_oldest', $issues, $active, true);
+						$result = array();
+
+						foreach ($doc as $v) {
+							$rec = $v['_id'];
+							$result[] = $res[$rec];
+						}
+
+						$this->html_table_view($result, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 					}
 				break;
 				default:

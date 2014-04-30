@@ -19,14 +19,14 @@ $lang['reporter'] = 'Zgłaszający';
 $lang['executor'] = 'Wykonawca';
 $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
-$lang['date'] = 'Utworzone';
+$lang['date'] = 'Zgłoszone';
 $lang['last_mod_date'] = 'Ostatnio zmienione';
 $lang['opened_for'] = 'Otwarte od';
 $lang['last_modified'] = 'Ostatnio zmienione';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 $lang['opened_tasks'] = 'Zadania otwarte';
 
-$lang['entity'] = 'Źródłó zgłoszenia';
+$lang['entity'] = 'Źródło zgłoszenia';
 
 $lang['opinion'] = 'Ocena skuteczności';
 $lang['root_cause'] = 'Kategoria przyczyny';
@@ -49,7 +49,7 @@ $lang['by'] = 'przez';
 $lang['from'] = 'z';
 $lang['to'] = 'na';
 $lang['diff'] = 'różnice';
-$lang['comment'] = 'Skomentuj';
+$lang['comment'] = 'Dodaj';
 $lang['replay'] = 'Odpowiedz';
 $lang['edit'] = 'Edytuj';
 $lang['change_task_state'] = 'Zmień status zadania';
@@ -208,16 +208,16 @@ $lang['issues_newest_to_oldest'] = 'Problemy otwarte od najnowszych do najstarsz
 $lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszych';
 $lang['tasks_newest_than_rep'] = 'Zadania nowsze niż %d';
 
-$lang['newest_than'] = 'Wszystkie nowsze niż';
+$lang['newest_than'] = 'Wszystkie od';
 $lang['issues_newest_than'] = 'Problemy nowsze niż';
 
 $lang['my_opened_issues'] = 'Problemy otwarte w które jestem zaangażowany';
 $lang['my_opened'] = 'Otwarte w które jestem zaangażowany';
 
-$lang['me_executor'] = 'Przypisane do mnie';
+$lang['me_executor'] = 'Moje';
 $lang['task_me_executor'] = 'Zadania przypisane do mnie';
 
-$lang['issues_newest_than'] = 'Wszystkie nowsze problemy niż';
+$lang['issues_newest_than'] = 'Wszystkie od';
 $lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
 
 $lang['show'] = 'Pokaż';
