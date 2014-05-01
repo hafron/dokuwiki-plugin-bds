@@ -2,13 +2,13 @@
 $lang['bds'] = 'Baza Doskonalenia Systemu';
 $lang['bds_short'] = 'BDS';
 $lang['bds_timeline'] = 'Historia';
-$lang['bds_issues'] = 'Problemy i zadania';
+$lang['bds_issues'] = 'Zestawienia';
 $lang['bds_issue_report'] = 'Zgłoś problem';
 $lang['bds_reports'] = 'Raporty';
 
 $lang['issues'] = 'Problemy';
 $lang['tasks'] = 'Zadania';
-$lang['reports'] = 'Raporty';
+$lang['reports'] = 'Wykazy';
 
 $lang['report_issue'] = 'Zgłoś problem';
 $lang['id'] = 'Nr';
@@ -21,9 +21,9 @@ $lang['executor'] = 'Wykonawca';
 $lang['coordinator'] = 'Koordynator';
 $lang['description'] = 'Opis';
 $lang['date'] = 'Zgłoszone';
-$lang['last_mod_date'] = 'Ostatnio zmienione';
+$lang['last_mod_date'] = 'Ostatnia zmiana';
 $lang['opened_for'] = 'Otwarte od';
-$lang['last_modified'] = 'Ostatnio zmienione';
+$lang['last_modified'] = 'Ostatnia zmieniona';
 $lang['last_modified_by'] = 'Ostatnio zmieniony przez';
 $lang['opened_tasks'] = 'Zadania otwarte';
 
@@ -59,39 +59,39 @@ $lang['quoted_in'] = 'Odpowiedzi';
 
 $lang['error_issue_id_not_specifed'] = 'Nie podałeś numeru wiersza, który chcesz odczytać.';
 $lang['error_issue_id_unknown'] = 'Wiersz, który próbujesz odczytać nie istnieje.';
-$lang['error_db_connection'] = 'Nie można połączyć się z bazą danych.';
+$lang['error_db_connection'] = 'Brak połączenia z bazą danych.';
 $lang['error_issue_insert'] = 'Nie można dodać nowego problemu.';
 $lang['error_task_add'] = 'Nie masz uprawnień aby dodawać zadania.';
 $lang['error_table_unknown'] = 'Wybrana tabela nie istnieje.';
 $lang['error_report_unknown'] = 'Wybrana raport nie istnieje.';
 
-$lang['vald_type_required'] = 'Musisz podać typ problemu.';
-$lang['vald_entity_required'] = 'Musisz wybrać podmiot z listy.';
-$lang['vald_title_required'] = 'Musisz podać tytuł.';
-$lang['vald_title_too_long'] = 'Tytuł jest za długi. Maksymalna długość tytułu wynosi: %d.';
-$lang['vald_title_wrong_chars'] = 'Tytuł zawiera niedozwolone znaki. Dozwolone znaki to litery, cyfry, spacje, myślniki, kropki i przecinki.';
-$lang['vald_executor_required'] = 'Musisz wybrać istniejącego użytkownika albo na razie nie przypisywać problemu do nikogo.';
-$lang['vald_coordinator_required'] = 'Koordynator musi być jednocześnie moderatorem BDSa.';
+$lang['vald_type_required'] = 'Określ typ problemu.';
+$lang['vald_entity_required'] = 'Wybierz źródło zgłoszenia z listy.';
+$lang['vald_title_required'] = 'Podaj tytuł.';
+$lang['vald_title_too_long'] = 'Za długi tytuł, max: %d znaków.';
+$lang['vald_title_wrong_chars'] = 'Niedozwolone znaki w tytule. Dozwolone są: litery, cyfry, spacje, myślniki, kropki i przecinki.';
+$lang['vald_executor_required'] = 'Wybierz istniejącego użytkownika albo pozostaw problem nieprzypisany do nikogo.';
+$lang['vald_coordinator_required'] = 'Koordynator musi mieć uprawnienia moderatora BEZa.';
 
-$lang['vald_desc_required'] = 'Musisz podać opis problemu.';
-$lang['vald_desc_too_long'] = 'Opis problemu jest za długi. Maksymalna długość opisu wynosi: %d znaków.';
-$lang['vald_opinion_too_long'] = 'Ocena skuteczności jest za długa. Maksymalna długość tego pola wynosi: %d znaków.';
-$lang['vald_cannot_give_opinion'] = 'Nie możesz dodać oceny skuteczności jeżeli problem pozostanie otwarty.';
-$lang['vald_cannot_give_reason'] = 'Nie możesz podać powodu zmiany statusu zadania, jeżeli zadanie nie zmieni statusu.';
+$lang['vald_desc_required'] = 'Opisz problemu.';
+$lang['vald_desc_too_long'] = 'Za długi opis problemu, max: %d znaków.';
+$lang['vald_opinion_too_long'] = 'Za długa ocena skuteczności, max: %d znaków.';
+$lang['vald_cannot_give_opinion'] = 'Nie możesz ocenić skuteczności jeżeli problem pozostanje otwarty.';
+$lang['vald_cannot_give_reason'] = 'Nie zmieniłeś statusu zadania';
 
 
-$lang['vald_content_required'] = 'Musisz wprowadzić jakąś treść.';
-$lang['vald_content_too_long'] = 'Treść jest za długa. Maksymalna długość wynosi: %d.';
-$lang['vald_replay_to_not_exists'] = 'Element historii na który próbujesz odpowiedzieć nie istnieje.';
-$lang['vald_state_required'] = 'Musisz podać status problemu.';
+$lang['vald_content_required'] = 'Wpisz tekst';
+$lang['vald_content_too_long'] = 'Za długi tekst, max: %d.';
+$lang['vald_replay_to_not_exists'] = 'Comment nie istnieje.';
+$lang['vald_state_required'] = 'Określ status problemu.';
 
-$lang['vald_task_state_required'] = 'Zadanie musi mieć określony status.';
-$lang['vald_task_state_tasks_not_closed'] = 'Nie możesz zamykać problemu do póki nie pozamykasz wszystkich zadań. Otwarte zadania: %t.';
+$lang['vald_task_state_required'] = 'Określ status zadania.';
+$lang['vald_task_state_tasks_not_closed'] = 'Nie możesz zamknąć problemu przed zamknięciem wszystkich zadań. Otwarte zadania: %t.';
 
-$lang['vald_executor_not_exists'] = 'Użytkownik podany jako wykonawca nie istnieje.';
-$lang['vald_cost_too_big'] = 'Koszt jest duży. Maksymalny koszt wynosi: %d';
-$lang['vald_cost_wrong_format'] = 'Koszt ma zły format. Podaj prawidłową liczbę zmiennoprzecinkową.';
-$lang['vald_class_required'] = 'Musisz podać klasę zadania.';
+$lang['vald_executor_not_exists'] = 'Podany wykonawca nie jest użytkownikiem BEZ.';
+$lang['vald_cost_too_big'] = 'Zbyt wysoki koszt, max: %d.';
+$lang['vald_cost_wrong_format'] = 'Popraw format liczby. Np: 300,000.54';
+$lang['vald_class_required'] = 'Podaj klasę zadania.';
 
 $lang['vald_days_should_be_numeric'] = 'Ilość dni musi być liczbą.';
 
@@ -114,7 +114,7 @@ $lang['hours'] = 'godz.';
 $lang['days'] = 'dn.';
 $lang['ago'] = 'temu';
 
-$lang['issue_closed'] = 'Działanie zostało zamknięte %d, przez %u, dalsze zmiany nie są już możliwe.';
+$lang['issue_closed'] = 'Problem został zamknięty %d, przez %u, dalsze zmiany nie są możliwe.';
 $lang['reopen_issue'] = 'Zmień status problemu';
 $lang['add'] = 'Dodaj';
 
@@ -137,7 +137,7 @@ $lang['task_reopened'] = 'Zadanie ponownie otwarte';
 $lang['comment_added'] = 'Komentarz dodany';
 $lang['comment_changed'] = 'Komentarz zmieniony';
 
-$lang['replay_by_task'] = 'Odpowiedz zadaniem';
+$lang['replay_by_task'] = 'Odpowiedz, dodając zadanie';
 $lang['change_made'] = 'Zmiana wprowadzona';
 
 $lang['change_comment'] = 'Popraw komentarz';
@@ -162,7 +162,7 @@ $lang['corrective_action'] = 'Korygujące';
 $lang['preventive_action'] = 'Zapobiegawcze';
 
 $lang['none_comment'] = 'brak(komentarz)';
-$lang['manpower'] = 'Ludzie';
+$lang['manpower'] = 'Pracownicy';
 $lang['method'] = 'Metoda';
 $lang['machine'] = 'Maszyna';
 $lang['material'] = 'Materiał';
@@ -179,7 +179,7 @@ $lang['reason_reopen'] = 'Przyczyna ponownego otwarcia';
 $lang['reason_done']  = 'Przyczyna zakończenia';
 $lang['reason_reject'] = 'Przyczyna odrzucenia';
 
-$lang['issue_created'] = 'Utworzono zgłoszenie';
+$lang['issue_created'] = 'Zgłoszono';
 
 $lang['issue_closed'] = 'Zamknięto problem';
 $lang['issue_reopened'] = 'Ponownie otwarto problem';
@@ -208,32 +208,33 @@ $lang['true_date'] = 'Data';
 $lang['newest_to_oldest'] = 'Otwarte od najnowszych do najstarszych';
 $lang['issues_newest_to_oldest'] = 'Problemy otwarte od najnowszych do najstarszych';
 $lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszych';
-$lang['tasks_newest_than_rep'] = 'Zadania nowsze niż %d';
+$lang['tasks_newest_than_rep'] = 'Zadania od %d';
 
 $lang['newest_than'] = 'Wszystkie od';
-$lang['issues_newest_than'] = 'Problemy nowsze niż';
+$lang['issues_newest_than'] = 'Problemy od';
 
 $lang['my_opened_issues'] = 'Problemy otwarte w które jestem zaangażowany';
 $lang['my_opened'] = 'Otwarte w które jestem zaangażowany';
 
 $lang['me_executor'] = 'Moje';
-$lang['task_me_executor'] = 'Zadania przypisane do mnie';
+$lang['task_me_executor'] = 'Moje zadania';
 
 $lang['issues_newest_than'] = 'Wszystkie od';
 $lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
 
-$lang['report_issues'] = 'Raport problemów z ostatnich';
-$lang['report_issues_from'] = 'Raport problemów z ostatnich %d';
-$lang['report_tasks'] = 'Raport zadań z ostatnich';
-$lang['report_tasks_from'] = 'Raport zadań z ostatnich %d';
-$lang['report_causes'] = 'Raport przyczyn z ostatnich';
-$lang['report_causes_from'] = 'Raport przyczyn z ostatnich %d';
+$lang['report_issues'] = 'Wykaz problemów z ostatnich';
+$lang['report_issues_from'] = 'Wykaz problemów z ostatnich %d';
+$lang['report_tasks'] = 'Wykaz zadań z ostatnich';
+$lang['report_tasks_from'] = 'Wykaz zadań z ostatnich %d';
+$lang['report_causes'] = 'Wykaz przyczyn z ostatnich';
+$lang['report_causes_from'] = 'Wykaz przyczyn z ostatnich %d';
 
 $lang['show'] = 'Pokaż';
 
-$lang['by_last_activity'] = 'Otwarte według ostatnio zmienionych';
+$lang['by_last_activity'] = 'Otwarte, według ostatnio zmienionych';
 $lang['issues_by_last_activity'] = 'Problemy otwarte według ostatnio zmienionych';
 
 $lang['ns'] = 'n.d.';
 
 $lang['ended'] = 'Zakończone';
+
