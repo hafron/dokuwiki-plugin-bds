@@ -8,6 +8,7 @@ $lang['bds_reports'] = 'Raporty';
 
 $lang['issues'] = 'Problemy';
 $lang['tasks'] = 'Zadania';
+$lang['reports'] = 'Raporty';
 
 $lang['report_issue'] = 'Zgłoś problem';
 $lang['id'] = 'Nr';
@@ -201,6 +202,7 @@ $lang['7d'] = '7D - Ocena skuteczności';
 $lang['8d'] = '8D - Zakończenie';
 
 $lang['cost_total'] = 'Koszt całkowity(zł)';
+$lang['number'] = 'Ilość';
 $lang['true_date'] = 'Data';
 
 $lang['newest_to_oldest'] = 'Otwarte od najnowszych do najstarszych';
@@ -219,6 +221,13 @@ $lang['task_me_executor'] = 'Zadania przypisane do mnie';
 
 $lang['issues_newest_than'] = 'Wszystkie od';
 $lang['issues_newest_than_rep'] = 'Problemy nowsze niż %d';
+
+$lang['report_issues'] = 'Raport problemów z ostatnich';
+$lang['report_issues_from'] = 'Raport problemów z ostatnich %d';
+$lang['report_tasks'] = 'Raport zadań z ostatnich';
+$lang['report_tasks_from'] = 'Raport zadań z ostatnich %d';
+$lang['report_causes'] = 'Raport przyczyn z ostatnich';
+$lang['report_causes_from'] = 'Raport przyczyn z ostatnich %d';
 
 $lang['show'] = 'Pokaż';
 

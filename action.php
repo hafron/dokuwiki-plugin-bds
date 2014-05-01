@@ -543,6 +543,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'type':
 				return $this->issue_types[$value];
 				break;
+			case 'root_cause':
+				return $this->root_causes[$value];
+				break;
 			case 'state':
 				if ($collection == 'tasks') {
 					return $this->task_states[$value];
@@ -2244,6 +2247,113 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$this->_handle_error($this->getLang($this->msg));
 				break;
 			}
+		} else if ($table == 'reports') {
+			if (
+				(isset($_POST['ridays']) && ! is_numeric($_POST['ridays'])) ||
+				(isset($_POST['rtdays']) && ! is_numeric($_POST['rtdays'])) ||
+				(isset($_POST['rcdays']) && ! is_numeric($_POST['rcdays']))
+			) {
+					$this->vald_report['days'] = $this->getLang('vald_days_should_be_numeric');
+					$this->_handle_issues();
+				} else {
+					if (isset($_POST['ridays'])) {
+						$post['days'] = (int)$_POST['ridays'];
+						echo '<h1>';
+						echo str_replace('%d', $post['days'], $this->getLang('report_issues_from'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['days']*24*60*60;
+						
+						$doc = $this->issues()->aggregate(
+							array('$match' => array('date' => array('$gt' => $date_limit))),
+							array('$project' => array(
+								'type' => 1,
+								'entity' => 1,
+								'events' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$group' => array('_id' => array('type' => '$type', 'entity' => '$entity'), 'cost_total' => array('$sum' => '$events.cost')))
+						);
+						$doc2 = $this->issues()->aggregate(
+							array('$match' => array('date' => array('$gt' => $date_limit))),
+							array('$project' => array(
+								'type' => 1,
+								'entity' => 1,
+							)),
+							array('$group' => array('_id' => array('type' => '$type', 'entity' => '$entity'), 'number' => array('$sum' => 1)))
+						);
+
+						$result = array();
+						foreach ($doc['result'] as $v) {
+							foreach ($doc2['result'] as $v2) {
+								if ($v['_id'] == $v2['_id']) {
+									$v['_id']['number'] = $v2['number'];
+								}
+							}
+							$v['_id']['cost_total'] = $v['cost_total'];
+							$result[] = $v['_id'];
+						}
+					$this->html_table_view($result, array('type', 'entity', 'number', 'cost_total'), 'issues');
+					} elseif (isset($_POST['rtdays'])) {
+						$post['days'] = (int)$_POST['rtdays'];
+						echo '<h1>';
+						echo str_replace('%d', $post['days'], $this->getLang('report_tasks_from'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['days']*24*60*60;
+						
+						$doc = $this->issues()->aggregate(
+							array('$project' => array(
+								'events' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.date' => array('$gt' => $date_limit)), array('events.type' => 'task')))),
+							array('$group' => array('_id' => array('class' => '$events.class'), 'cost_total' => array('$sum' => '$events.cost'), 'number' => array('$sum' => 1)))
+						);
+
+						$result = array();
+						foreach ($doc['result'] as $v) {
+							$v['_id']['cost_total'] = $v['cost_total'];
+							$v['_id']['number'] = $v['number'];
+							$result[] = $v['_id'];
+						}
+					$this->html_table_view($result, array('class', 'number', 'cost_total'), 'tasks');
+					} elseif (isset($_POST['rcdays'])) {
+						$post['days'] = (int)$_POST['rcdays'];
+						echo '<h1>';
+						echo str_replace('%d', $post['days'], $this->getLang('report_causes_from'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['days']*24*60*60;
+						
+						$doc = $this->issues()->aggregate(
+							array('$project' => array(
+								'events' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.date' => array('$gt' => $date_limit)), array('events.type' => 'comment'), ))),
+							array('$group' => array('_id' => array('root_cause' => '$events.root_cause'), 'number' => array('$sum' => 1)))
+						);
+
+						$result = array();
+						foreach ($doc['result'] as $v) {
+							$v['_id']['number'] = $v['number'];
+							if ($v['_id']['root_cause'] != '0') {
+								$result[] = $v['_id'];
+							}
+						}
+					$this->html_table_view($result, array('root_cause', 'number'), 'tasks');
+					}
+				}
 		} else {
 			$this->msg = 'error_table_unknown';
 			$this->_handle_error($this->getLang($this->msg));
@@ -2308,6 +2418,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 		}
 
+		if (isset($_POST['tdays'])) {
+			$value['tdays'] = $_POST['tdays'];
+		} else {
+			$value['tdays'] = '';
+		}
+
 		echo '<ol>';
 		echo '<li>';
 		echo '<a href="?do=bds_table&table=tasks&report=newest_to_oldest">';
@@ -2325,7 +2441,75 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo $this->getLang('newest_than');
 		echo ': ';
 		echo '<form action="?do=bds_table&table=tasks&report=newest_than" method="post">';
-		echo '<input class="days" type="numeric" name="tdays" value="'.$value['days'].'">';
+		echo '<input class="days" type="numeric" name="tdays" value="'.$value['tdays'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
+		echo '</li>';
+
+		echo '</ol>';
+
+		echo '<h1>';
+		echo $this->getLang('reports');
+		echo '</h1>';
+
+		if (isset($this->vald_report)) {
+			foreach ($this->vald_report as $error) {
+				echo '<div class="error">'.$error.'</div>';
+			}
+		}
+
+		if (isset($_POST['ridays'])) {
+			$value['ridays'] = $_POST['ridays'];
+		} else {
+			$value['ridays'] = '';
+		}
+
+		if (isset($_POST['rtdays'])) {
+			$value['rtdays'] = $_POST['rtdays'];
+		} else {
+			$value['rtdays'] = '';
+		}
+
+		if (isset($_POST['rcdays'])) {
+			$value['rcdays'] = $_POST['rcdays'];
+		} else {
+			$value['rcdays'] = '';
+		}
+		
+		echo '<ol>';
+
+		echo '<li>';
+		echo $this->getLang('report_issues');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=reports&report=issues" method="post">';
+		echo '<input class="days" type="numeric" name="ridays" value="'.$value['ridays'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
+		echo '</li>';
+
+		echo '<li>';
+		echo $this->getLang('report_tasks');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=reports&report=tasks" method="post">';
+		echo '<input class="days" type="numeric" name="rtdays" value="'.$value['rtdays'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
+		echo '</li>';
+
+		echo '<li>';
+		echo $this->getLang('report_causes');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=reports&report=causes" method="post">';
+		echo '<input class="days" type="numeric" name="rcdays" value="'.$value['rcdays'].'">';
 		echo ' ';
 		echo $this->getLang('days');
 		echo ': ';
