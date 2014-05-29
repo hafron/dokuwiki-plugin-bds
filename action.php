@@ -2573,7 +2573,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								}
 								(report.root_causes[event.root_cause]).push({content: event.content});
 							}
-						} else if (event.type === "task") {
+						} else if (event.type === "task" && event.state != 2) {
 							if ( ! report.tasks) {
 								report.tasks = {};
 							}
