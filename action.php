@@ -1914,6 +1914,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo '<div class="bds_block" id="bds_change_issue">';
 				echo '<h1>'.$this->getLang('change_issue').'</h1>';
 				echo '<div class="bds_block_content">';
+				
+				$tasks = 0;
+				if (count($cursor['events']) > 0) {
+					foreach ($cursor['events'] as $event) {
+						if ($event['type'] == 'task')
+							$tasks++;
+					}
+				}
+				if ($tasks == 0) {
+					unset($this->issue_states[3]);
+					unset($this->issue_states[4]);
+				}
 				$action = '?do=bds_issue_change&bds_issue_id='.$cursor['_id'].'#bds_change_issue';
 				$this->html_generate_report_form($action, $cursor);
 				echo '</div>';
