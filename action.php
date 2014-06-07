@@ -1234,11 +1234,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo '</h2>';
 		echo $this->wiki_parse($cursor['description']);
 
-		echo '<h2>';
-		echo $this->getLang('3d');
-		echo '</h2>';
-
 		if (is_array($cursor['root_causes'])) {
+			echo '<h2>';
+			echo $this->getLang('3d');
+			echo '</h2>';
+
 			foreach ($cursor['root_causes'] as $cause => $data) {
 				echo '<h3>';
 				echo $this->root_causes[$cause];
@@ -1253,27 +1253,36 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			}
 		}
 
-		echo '<h2>';
-		echo $this->getLang('4d');
-		echo '</h2>';
+		if (count($cursor['tasks'][0]) > 0) {
+			echo '<h2>';
+			echo $this->getLang('4d');
+			echo '</h2>';
+		}
 
 		$this->show_tasks_table($cursor, 0);
 
-		echo '<h2>';
-		echo $this->getLang('5d');
-		echo '</h2>';
+		if (count($cursor['tasks'][1]) > 0) {
+			echo '<h2>';
+			echo $this->getLang('5d');
+			echo '</h2>';
+		}
 
 		$this->show_tasks_table($cursor, 1);
 
-		echo '<h2>';
-		echo $this->getLang('6d');
-		echo '</h2>';
+
+		if (count($cursor['tasks'][2]) > 0) {
+			echo '<h2>';
+			echo $this->getLang('6d');
+			echo '</h2>';
+		}
 
 		$this->show_tasks_table($cursor, 2);
 
-		echo '<h2>';
-		echo $this->getLang('7d');
-		echo '</h2>';
+		if (strlen(trim($cursor['opinion'])) > 0) {
+			echo '<h2>';
+			echo $this->getLang('7d');
+			echo '</h2>';
+		}
 
 		echo $this->wiki_parse($cursor['opinion']);
 
