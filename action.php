@@ -2635,8 +2635,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					$this->error = 'error_issue_id_unknown';
 					$this->_handle_error($this->getLang($this->error));
 				} else {
-					$this->generate_8d_pdf_report($cursor);
-					exit(0);
+					//$this->generate_8d_pdf_report($cursor);
+					$this->report_cursor = $cursor;
+					//exit(0);
 				}
 			break;
 			case 'bds_issue_add':
@@ -3157,6 +3158,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issues':
 			case 'bds_table':
 			case 'bds_error':
+			case 'bds_8d':
 				$event->stopPropagation(); 
 				$event->preventDefault();  
 				break;
@@ -3187,6 +3189,9 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_error':
 				$this->_handle_error($this->getLang($this->error));
 				break;
+			case 'bds_8d':
+					$this->generate_8d_html_report($this->report_cursor);
+					break;
 		}
 	}
  
