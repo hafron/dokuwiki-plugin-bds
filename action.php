@@ -2786,6 +2786,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								if ($event->data == 'bds_issue_reopen') {
 									//reopening user become corodinatro
 									$post['coordinator'] = $INFO['client'];
+									//wyzerowanie przyczyn
+									$post['opinion'] = '';
 								}
 								//fields that cannot be changed by form
 								$diff_cursor = $cursor;
