@@ -1968,28 +1968,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$sort = array('last_mod_date' => -1);
 						}
 
-						//all
-						$doc = $issues->aggregate(
-							array('$project' => array(
-								'_id' => 1,
-								'events' => 1,
-								'state' => 1
-							)),
-							array('$unwind' => '$events'),
-							array('$match' => array('$and' => array(array('events.type' => 'task')))),
-							array('$match' => array('$or' => $active)),
-							array('$group' => array('_id' =>
-													array('_id' => '$_id',
-														'cost' => '$cost',
-													),
-													'all_tasks' => array('$sum' => 1),
-													'cost_total' => array('$sum' => '$events.cost')
-													)),
-							array('$sort' => $sort)
-						);
-
 						//wybierz te dokumenty, które mają przypisane zadania
-						$state0 = $issues->aggregate(
+						$doc = $issues->aggregate(
 							array('$project' => array(
 								'_id' => 1,
 								'state' => 1,
@@ -2012,7 +1992,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 														'type' => '$type',
 														'state' => '$state',
 														'title' => '$title',
-														'cost' => '$cost',
 														'coordinator' => '$coordinator',
 														'entity' => '$entity',
 														'reporter' => '$reporter',
@@ -2023,7 +2002,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 													)),
 							array('$sort' => $sort)
 						);
-
 						//wybierz wszystkie dokumenty
 						$doc2 = $issues->find(array('$or' => $active));
 
@@ -2035,12 +2013,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 						//połącz we wspólną tablicę
 						$result = array();
-						for ($i = 0; $i < count($state0['result']);$i++) {
-							$v = $state0['result'][$i];
+						foreach ($doc['result'] as $v) {
 							$id = $v['_id']['_id'];	
 							$result[$id] = $v['_id'];
-							$result[$id]['opened_tasks'] = $v['opened_tasks'].'/'.$doc['result'][$i]['all_tasks'];
-							$result[$id]['cost_total'] = $doc['result'][$i]['cost_total'];
+							$result[$id]['opened_tasks'] = $v['opened_tasks'];
 						}
 
 						$res = array();
@@ -2052,13 +2028,11 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							if (isset($result[$v['_id']])) {
 								$res[$i] = $result[$v['_id']];
 							} else {
-								$v['opened_tasks'] = '0/0';
-								$v['cost_total'] = 0;
+								$v['opened_tasks'] = 0;
 								$res[$i] = $v;
 							}
 							$i++;
 						}
-
 						return $res;
 					}
 					
@@ -2095,7 +2069,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 					$res = $this->get_issues_with_states($report, $issues, $active, false);
 					
-					$this->html_table_view($res, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'cost_total', 'opened_tasks'));
+					$this->html_table_view($res, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 				break;
 				case 'my_opened':
 					echo '<h1>';

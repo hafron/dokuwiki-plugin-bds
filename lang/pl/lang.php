@@ -124,6 +124,7 @@ $lang['open'] = 'Otwarte';
 $lang['closed'] = 'Zamknięte';
 
 $lang['cost'] = 'Koszt(zł)';
+
 $lang['executor'] = 'Wykonawca';
 
 $lang['task_state'] = 'Status';
