@@ -80,6 +80,34 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$this->entity[] = trim($entity);
 		}
 	}
+
+	private function localeFN($id,$ext='txt') {
+		global $conf;
+
+		$file = DOKU_PLUGIN.'bds/lang/'.$conf['lang'].'/'.$id.'.'.$ext;
+		if(!@file_exists($file)){
+			  $file = DOKU_PLUGIN.'bds/lang/en/'.$id.'.'.$ext;
+		}
+		return $file;
+	}
+	private function rawLocale($id, $ext = 'txt') {
+		return io_readFile($this->localeFN($id, $ext));
+	}
+
+	private function get_email($user) {
+		global $auth;
+		$data = $auth->getUserData($user);
+		return $data['mail'];
+
+	}
+
+	private function get_name($user) {
+		global $auth;
+		$data = $auth->getUserData($user);
+		return $data['name'];
+
+	}
+
 	private function user_can_edit() {
 		global $INFO;
 		global $auth;
@@ -2738,8 +2766,25 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								$post['opinion'] = '';
 
 								try {
-									$issues->insert($post);
+									//$issues->insert($post);
 									$_GET['bds_issue_id'] = $min_nr;
+
+									//Wyślij powiadomienie
+									$text = $this->rawLocale('bez_new_issue');
+									$trep = array(
+										'FULLNAME' => $this->get_name($post['coordinator']),
+										'NR' => '#'.$post['_id'],
+										'TYPE' => $this->string_format_field('type', $post['type']),
+										'TITLE' => '['.$post['entity'].']'.$post['title'],
+										'ISSUE' => $post['description'],
+										'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($post['_id'])
+									);
+									$mail = new Mailer();
+									$mail->to($post['coordinator'].' <'.$this->get_email($post['coordinator']).'>');
+									$mail->subject($this->getLang('new_issue').': #'.$post['_id'].' '.$this->string_format_field('type', $post['type']));
+									$mail->setBody($text, $trep);
+									$mail->send();
+								
 									$event->data = 'bds_issue_show';
 								} catch(MongoException $e) {
 									$this->error = 'error_issue_instert';
@@ -2926,7 +2971,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 				if (isset($_POST['content'])) {
 					if ($event->data != 'bds_issue_change_task' || $this->user_is_moderator()) {
-						var_dump($_POST['content']);
 						$_POST['content'] = trim($_POST['content']);
 						if (strlen($_POST['content']) == 0) {
 							$this->vald_comment['content'] = $this->getLang('vald_content_required');
@@ -3130,7 +3174,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								
 								$issues->update(array('_id' => $id), array('$push' => 
 											array('events' => $post)
-										));
+											));
+								//Wyślij powiadomienie
+
+								$cursor = $issues->findOne(array('_id' => $id));
+								$text = $this->rawLocale('bez_new_task');
+								$nr = '#'.$cursor['_id'].':'.$post['id'];
+								$trep = array(
+									'FULLNAME' => $this->get_name($post['executor']),
+									'NR' => $nr,
+									'TASK' => $post['content'],
+									'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'], $post['id'])
+								);
+								$mail = new Mailer();
+								$mail->to($post['executor'].' <'.$this->get_email($post['executor']).'>');
+								$mail->subject($this->getLang('new_task').': '.$nr.' '.$this->string_format_field('class', $post['class']));
+								$mail->setBody($text, $trep);
+								$mail->send();
 
 								$event->data = 'bds_issue_show';
 								//scroll down to new one
@@ -3150,12 +3210,17 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 		//need relocating
 		if ($this->anchor != '') {
+			header('Location: '. $this->create_url($event->data));
+		}
+	}
+
+	function create_url($do) {
 			$get = array();
 			foreach ($_GET as $k => $v) {
 				$get[$k] = $v;
 			}
 			//remember about event->data
-			$get['do'] = $event->data;
+			$get['do'] = $do;
 
 			//some special changes
 			if (count($this->vald_comment) == 0) {
@@ -3169,8 +3234,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			//remove last &
 			$url = substr($url, 0, -1);
 			$url .= '#'.urlencode($this->anchor);
-			header('Location: '.$url);
-		}
+			return $url;
 	}
 
 	public function handle_act_unknown(& $event, $param) {
