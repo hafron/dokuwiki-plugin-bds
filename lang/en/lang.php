@@ -210,7 +210,9 @@ $lang['tasks_newest_to_oldest'] = "Open tasks from latest to earliest";
 $lang['tasks_newest_than_rep'] = "Tasks for %d";
 
 $lang['newest_than'] = "All for";
+$lang['newest_than_cost'] = "Cost statement for";
 $lang['issues_newest_than'] = "Problems for ";
+$lang['issues_cost_statement'] = 'Cost statement for %d';
 
 $lang['my_opened_issues'] = "Open problems which I am involved";
 $lang['my_opened'] = "Open, which I am involved";
@@ -219,7 +221,8 @@ $lang['me_executor'] = "My";
 $lang['task_me_executor'] = "My tasks";
 
 $lang['issues_newest_than'] = "All for";
-$lang['issues_newest_than_rep'] = "Problems for";
+$lang['issues_newest_than_rep'] = "Problems for %d";
+$lang['newest_than_cost_rep'] = "Cost statement for %d";
 
 $lang['report_issues'] = 'Register of problems for';
 $lang['report_issues_from'] = 'Register of problems for %d';

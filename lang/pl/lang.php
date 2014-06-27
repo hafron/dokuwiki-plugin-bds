@@ -212,7 +212,10 @@ $lang['tasks_newest_to_oldest'] = 'Zadania otwarte od najnowszych do najstarszyc
 $lang['tasks_newest_than_rep'] = 'Zadania od %d';
 
 $lang['newest_than'] = 'Wszystkie od';
+$lang['newest_than_cost'] = "Zestawienie kosztów od";
 $lang['issues_newest_than'] = 'Problemy od';
+$lang['issues_cost_statement'] = 'Zestawienie kosztów od %d';
+
 
 $lang['my_opened_issues'] = 'Problemy otwarte w które jestem zaangażowany';
 $lang['my_opened'] = 'Otwarte w które jestem zaangażowany';

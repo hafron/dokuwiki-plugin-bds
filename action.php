@@ -1988,6 +1988,87 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 		echo '</table>';
 	}
+	private function get_issues_with_states_by_costs($report, $issues, $active, $id_indexed=false) {
+
+						if ($report == 'newest_to_oldest') {
+							$sort = array('_id' => -1);
+						} else {
+							$sort = array('last_mod_date' => -1);
+						}
+
+						//all
+
+						//wybierz te dokumenty, które mają przypisane zadania
+						$state0 = $issues->aggregate(
+							array('$project' => array(
+								'_id' => 1,
+								'state' => 1,
+								'type' => 1,
+								'title' => 1,
+								'coordinator' => 1,
+								'entity' => 1,
+								'reporter' => 1,
+								'date' => 1,
+								'last_mod_date' => 1,
+								'events' => 1,
+								'authors' => 1,
+								'tasks' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.type' => 'task'), array('events.state' => 0)))),
+							array('$match' => array('$or' => $active)),
+							array('$group' => array('_id' =>
+													array('_id' => '$_id',
+														'type' => '$type',
+														'state' => '$state',
+														'title' => '$title',
+														'cost' => '$cost',
+														'coordinator' => '$coordinator',
+														'entity' => '$entity',
+														'reporter' => '$reporter',
+														'date' => '$date',
+														'last_mod_date' => '$last_mod_date',
+													),
+													'cost_total' => array('$sum' => '$events.cost')
+													)),
+							array('$sort' => $sort)
+						);
+
+						//wybierz wszystkie dokumenty
+						$doc2 = $issues->find(array('$or' => $active));
+
+						if ($report == 'newest_to_oldest') {
+							$doc2->sort(array('_id' => -1));
+						} else {
+							$doc2->sort(array('last_mod_date' => -1));
+						}
+
+						//połącz we wspólną tablicę
+						$result = array();
+						for ($i = 0; $i < count($state0['result']);$i++) {
+							$v = $state0['result'][$i];
+							$id = $v['_id']['_id'];	
+							$result[$id] = $v['_id'];
+							$result[$id]['cost_total'] = $v['cost_total'];
+						}
+
+						$res = array();
+						$i = 0;
+						foreach($doc2 as $k => $v) {
+							if ($id_indexed == true) {
+								$i = $v['_id'];
+							}
+							if (isset($result[$v['_id']])) {
+								$res[$i] = $result[$v['_id']];
+							} else {
+								$v['cost_total'] = '0';
+								$res[$i] = $v;
+							}
+							$i++;
+						}
+
+						return $res;
+					}
 	private function get_issues_with_states($report, $issues, $active, $id_indexed=false) {
 
 						if ($report == 'newest_to_oldest') {
@@ -1997,24 +2078,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 						}
 
 						//all
-						$doc = $issues->aggregate(
-							array('$project' => array(
-								'_id' => 1,
-								'events' => 1,
-								'state' => 1
-							)),
-							array('$unwind' => '$events'),
-							array('$match' => array('$and' => array(array('events.type' => 'task')))),
-							array('$match' => array('$or' => $active)),
-							array('$group' => array('_id' =>
-													array('_id' => '$_id',
-														'cost' => '$cost',
-													),
-													'all_tasks' => array('$sum' => 1),
-													'cost_total' => array('$sum' => '$events.cost')
-													)),
-							array('$sort' => $sort)
-						);
 
 						//wybierz te dokumenty, które mają przypisane zadania
 						$state0 = $issues->aggregate(
@@ -2067,8 +2130,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$v = $state0['result'][$i];
 							$id = $v['_id']['_id'];	
 							$result[$id] = $v['_id'];
-							$result[$id]['opened_tasks'] = $v['opened_tasks'].'/'.$doc['result'][$i]['all_tasks'];
-							$result[$id]['cost_total'] = $doc['result'][$i]['cost_total'];
+							$result[$id]['opened_tasks'] = $v['opened_tasks'];
 						}
 
 						$res = array();
@@ -2080,8 +2142,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							if (isset($result[$v['_id']])) {
 								$res[$i] = $result[$v['_id']];
 							} else {
-								$v['opened_tasks'] = '0/0';
-								$v['cost_total'] = 0;
+								$v['opened_tasks'] = '0';
 								$res[$i] = $v;
 							}
 							$i++;
@@ -2123,7 +2184,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 					$res = $this->get_issues_with_states($report, $issues, $active, false);
 					
-					$this->html_table_view($res, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'cost_total', 'opened_tasks'));
+					//, 'cost_total'
+					$this->html_table_view($res, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 				break;
 				case 'my_opened':
 					echo '<h1>';
@@ -2217,7 +2279,40 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 
 						$this->html_table_view($result, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'opened_tasks'));
 					}
-				break;
+					break;
+				case 'newest_than_cost':
+					$this->vald = array();
+					if (isset($_POST['days']) && ! is_numeric($_POST['days'])) {
+						$this->vald['days'] = $this->getLang('vald_days_should_be_numeric');
+						$this->_handle_issues();
+					} else {
+						$post['days'] = (int)$_POST['days'];
+						echo '<h1>';
+						echo str_replace('%d', $post['days'], $this->getLang('issues_cost_statement'));
+						echo ' ';
+						echo $this->getLang('days');
+						echo '</h1>';
+						$today = mktime(0, 0, 0);
+						$date_limit = $today - $post['days']*24*60*60;
+
+						$doc = $issues->find(array('date' => array('$gt' => $date_limit)))->sort(array('_id' => -1));
+
+						$active = array();
+						foreach ($this->issue_states as $k => $v) {
+							$active[] = array('state' => $k);
+						}
+
+						$res = $this->get_issues_with_states_by_costs('newest_to_oldest', $issues, $active, true);
+						$result = array();
+
+						foreach ($doc as $v) {
+							$rec = $v['_id'];
+							$result[] = $res[$rec];
+						}
+
+						$this->html_table_view($result, array('_id', 'state', 'type', 'title', 'coordinator', 'date', 'last_mod_date', 'cost_total'));
+					}
+					break;
 				default:
 					$this->msg = 'error_report_unknown';
 					$this->_handle_error($this->getLang($this->msg));
@@ -2473,6 +2568,18 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		echo $this->getLang('newest_than');
 		echo ': ';
 		echo '<form action="?do=bds_table&table=issues&report=newest_than" method="post">';
+		echo '<input class="days" type="numeric" name="days" value="'.$value['days'].'">';
+		echo ' ';
+		echo $this->getLang('days');
+		echo ': ';
+		echo '<input type="submit" value="'.$this->getLang('show').'">';
+		echo '</form>';
+		echo '</li>';
+
+		echo '<li>';
+		echo $this->getLang('newest_than_cost');
+		echo ': ';
+		echo '<form action="?do=bds_table&table=issues&report=newest_than_cost" method="post">';
 		echo '<input class="days" type="numeric" name="days" value="'.$value['days'].'">';
 		echo ' ';
 		echo $this->getLang('days');
@@ -2766,7 +2873,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								$post['opinion'] = '';
 
 								try {
-									//$issues->insert($post);
+									$issues->insert($post);
 									$_GET['bds_issue_id'] = $min_nr;
 
 									//Wyślij powiadomienie
