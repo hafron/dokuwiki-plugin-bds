@@ -239,3 +239,6 @@ $lang['ns'] = 'n.d.';
 
 $lang['ended'] = 'Zakończone';
 
+//Mail
+$lang['new_task'] = "Nowe zadanie";
+$lang['new_issue'] = "Nowy problem";

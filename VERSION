@@ -5,4 +5,8 @@
 0.2
 	1. Po ponownym otwaricu problemu, przyczyna zamknięcia jest usuwana.
 	2. Obrazki działają w raporcie
+
 0.3
+	1. Kolumna sumarycznych kosztów w tabelce problemów.
+	2. Ilość wszystkich zadań w tabelce problemów.
+	3. Powiadomienia mailowe o nowym zadaniu oraz problemie.
