@@ -1606,6 +1606,25 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 					echo '</span>';
 					echo '</h2>';
 					if ( ! in_array($cursor['state'], $this->blocking_states)) {
+						if ($event['type'] == 'task') {
+								$text = $this->rawLocale('bez_new_task');
+								$nr = '#'.$cursor['_id'].':'.$event['id'];
+								$trep = array(
+									'FULLNAME' => $this->get_name($event['executor']),
+									'NR' => $nr,
+									'TASK' => $event['content'],
+									'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'], $event['id'])
+								);
+								$mail = new Mailer();
+								$to = $event['executor'].' <'.$this->get_email($event['executor']).'>';
+								$subject = $this->getLang('new_task').': '.$nr.' '.$this->string_format_field('class', $event['class']);
+
+								// Apply replacements
+							    foreach($trep as $key => $substitution) {
+									$text = str_replace('@'.strtoupper($key).'@', $substitution, $text);
+								}
+								echo '<a class="bds_inline_button" href="mailto:'.$to.'?subject='.rawurlencode($subject).'&body='.rawurlencode($text).'">✉ '.$this->getLang('send_mail').'</a>';
+						}
 						if ($event['type'] != 'task') {
 							echo '<a class="bds_inline_button" href="?do=bds_issue_show&bds_issue_id='.$cursor['_id'].'&replay_to='.$event['id'].'#comment_form">↳ '.$this->getLang('replay').'</a>';
 							echo ' ';

@@ -245,3 +245,4 @@ $lang['ended'] = 'Zakończone';
 //Mail
 $lang['new_task'] = "Nowe zadanie";
 $lang['new_issue'] = "Nowy problem";
+$lang['send_mail'] = "Wyślij";
