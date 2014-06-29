@@ -1545,7 +1545,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'])
 			);
 
-			$to = $event['executor'].' <'.$this->get_email($event['executor']).'>';
+			$to = $this->get_name($cursor['coordinator']).' <'.$this->get_email($cursor['coordinator']).'>';
 			$subject = $this->getLang('new_issue').': #'.$cursor['_id'].' '.$this->string_format_field('type', $cursor['type']);
 
 			// Apply replacements
@@ -1634,7 +1634,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									'TASK' => $event['content'],
 									'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'], $event['id'])
 								);
-								$to = $event['executor'].' <'.$this->get_email($event['executor']).'>';
+								$to = $this->get_name($event['executor']).' <'.$this->get_email($event['executor']).'>';
 								$subject = $this->getLang('new_task').': '.$nr.' '.$this->string_format_field('class', $event['class']);
 
 								// Apply replacements
