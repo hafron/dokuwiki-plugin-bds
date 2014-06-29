@@ -1535,6 +1535,25 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo $this->wiki_parse($cursor['opinion']);
 			}
 
+			$text = $this->rawLocale('bez_new_issue');
+			$trep = array(
+				'FULLNAME' => $this->get_name($cursor['coordinator']),
+				'NR' => '#'.$cursor['_id'],
+				'TYPE' => $this->string_format_field('type', $cursor['type']),
+				'TITLE' => '['.$cursor['entity'].']'.$cursor['title'],
+				'ISSUE' => $cursor['description'],
+				'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'])
+			);
+
+			$to = $event['executor'].' <'.$this->get_email($event['executor']).'>';
+			$subject = $this->getLang('new_issue').': #'.$cursor['_id'].' '.$this->string_format_field('type', $cursor['type']);
+
+			// Apply replacements
+			foreach($trep as $key => $substitution) {
+				$text = str_replace('@'.strtoupper($key).'@', $substitution, $text);
+			}
+			echo '<a class="bds_inline_button bds_send_button" href="mailto:'.$to.'?subject='.rawurlencode($subject).'&body='.rawurlencode($text).'">✉ '.$this->getLang('send_mail').'</a>';
+
 			echo '<a href="?do=bds_8d&bds_issue_id='.$id.'" class="bds_inline_button bds_report_button">';
 			echo $this->getLang('8d_report');
 			echo '</a>';
@@ -1615,7 +1634,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									'TASK' => $event['content'],
 									'URL' => DOKU_URL.'doku.php'.$this->string_issue_href($cursor['_id'], $event['id'])
 								);
-								$mail = new Mailer();
 								$to = $event['executor'].' <'.$this->get_email($event['executor']).'>';
 								$subject = $this->getLang('new_task').': '.$nr.' '.$this->string_format_field('class', $event['class']);
 
@@ -2034,7 +2052,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								'tasks' => 1
 							)),
 							array('$unwind' => '$events'),
-							array('$match' => array('$and' => array(array('events.type' => 'task'), array('events.state' => 0)))),
+							array('$match' => array('$and' => array(array('events.type' => 'task')))),
 							array('$match' => array('$or' => $active)),
 							array('$group' => array('_id' =>
 													array('_id' => '$_id',

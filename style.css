@@ -154,6 +154,11 @@
 	right: 0.5em;
 }
 
+.bds_send_button {
+	position:absolute;
+	bottom: 0.5em;
+	right: 7em;
+}
 .bds_last_edit {
     color: #999999;
 	font-size: 80%;

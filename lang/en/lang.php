@@ -238,7 +238,7 @@ $lang['issues_by_last_activity'] = "Open problems, from latest to earliest";
 
 $lang['ns'] = "NA";
 
-$lang['ended'] = "Complited";
+$lang['ended'] = "Completed";
 
 //Mail
 $lang['new_task'] = "New task";
