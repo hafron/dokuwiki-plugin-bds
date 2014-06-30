@@ -2914,7 +2914,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									$_GET['bds_issue_id'] = $min_nr;
 
 									//Wyślij powiadomienie
-									/*$text = $this->rawLocale('bez_new_issue');
+									$text = $this->rawLocale('bez_new_issue');
 									$trep = array(
 										'FULLNAME' => $this->get_name($post['coordinator']),
 										'NR' => '#'.$post['_id'],
@@ -2927,7 +2927,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 									$mail->to($post['coordinator'].' <'.$this->get_email($post['coordinator']).'>');
 									$mail->subject($this->getLang('new_issue').': #'.$post['_id'].' '.$this->string_format_field('type', $post['type']));
 									$mail->setBody($text, $trep);
-									$mail->send();*/
+									$mail->send();
 								
 									$event->data = 'bds_issue_show';
 								} catch(MongoException $e) {
@@ -3321,7 +3321,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 											));
 								//Wyślij powiadomienie
 
-								/*$cursor = $issues->findOne(array('_id' => $id));
+								$cursor = $issues->findOne(array('_id' => $id));
 								$text = $this->rawLocale('bez_new_task');
 								$nr = '#'.$cursor['_id'].':'.$post['id'];
 								$trep = array(
@@ -3334,7 +3334,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 								$mail->to($post['executor'].' <'.$this->get_email($post['executor']).'>');
 								$mail->subject($this->getLang('new_task').': '.$nr.' '.$this->string_format_field('class', $post['class']));
 								$mail->setBody($text, $trep);
-								$mail->send();*/
+								$mail->send();
 
 								$event->data = 'bds_issue_show';
 								//scroll down to new one
