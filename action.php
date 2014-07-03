@@ -2484,6 +2484,44 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							array('$unwind' => '$events'),
 							array('$group' => array('_id' => array('type' => '$type', 'entity' => '$entity'), 'cost_total' => array('$sum' => '$events.cost')))
 						);
+
+						$average_closed = $this->issues()->aggregate(
+							array('$match' => array('date' => array('$gt' => $date_limit))),
+							array('$project' => array(
+								'type' => 1,
+								'entity' => 1,
+								'events' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.state' => 1), array('events.type' => 'task'))))
+						);
+						$average_opened = $this->issues()->aggregate(
+							array('$match' => array('date' => array('$gt' => $date_limit))),
+							array('$project' => array(
+								'type' => 1,
+								'entity' => 1,
+								'events' => 1
+							)),
+							array('$unwind' => '$events'),
+							array('$match' => array('$and' => array(array('events.state' => 1), array('events.type' => 'task'))))
+						);
+
+						$average = array();
+						foreach ($average_closed['result'] as $v) {
+							$k = $v['type'].$v['entity'];
+							$ev = $v['events'];
+							$average[$k]['sum'] += $ev['last_mod_date'] - $ev['date'];
+							$average[$k]['qt']++;
+						}
+
+						foreach ($average_opened['result'] as $v) {
+							$k = $v['type'].$v['entity'];
+							$ev = $v['events'];
+							$average[$k]['sum'] += time() - $ev['date'];
+							$average[$k]['qt']++;
+						}
+						//var_dump($average);
+
 						$doc2 = $this->issues()->aggregate(
 							array('$match' => array('date' => array('$gt' => $date_limit))),
 							array('$project' => array(
@@ -2503,7 +2541,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$v['_id']['cost_total'] = $v['cost_total'];
 							$result[] = $v['_id'];
 						}
-					$this->html_table_view($result, array('type', 'entity', 'number', 'cost_total'), 'issues');
+						for($i = 0; $i < count($result); $i++) {
+							$k = $result[$i]['type'].$result[$i]['entity'];
+							foreach ($average as $ak => $av)
+								if ($ak == $k)
+									$result[$i]['average_days'] = round(($av['sum']/$av['qt'])/(60*60*24));
+						}
+					$this->html_table_view($result, array('type', 'entity', 'number', 'cost_total', 'average_days'), 'issues');
 					} elseif (isset($_POST['rtdays'])) {
 						$post['days'] = (int)$_POST['rtdays'];
 						echo '<h1>';

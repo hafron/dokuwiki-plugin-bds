@@ -246,3 +246,5 @@ $lang['ended'] = 'Zakończone';
 $lang['new_task'] = "Nowe zadanie";
 $lang['new_issue'] = "Nowy problem";
 $lang['send_mail'] = "Wyślij";
+
+$lang['average_days'] = "Średni czas zamykania zadań w dniach";
