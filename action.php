@@ -46,8 +46,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			$this->lang = $lang;
 			$this->localised = true;
 		}
-		var_dump($lang['save']);
-		var_dump($this->getLang('save'));
 
 		$this->issue_types[0] = $this->getLang('type_noneconformity');
 		$this->issue_types[1] = $this->getLang('type_complaint');
