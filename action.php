@@ -38,6 +38,17 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handle_act_unknown');
 	}
 	public function __construct() {
+		if (isset($_COOKIE['bez_lang'])) {
+			$path = DOKU_PLUGIN.$this->getPluginName().'/lang/';
+			$lang = array();
+			// don't include once, in case several plugin components require the same language file
+			@include($path.$_COOKIE['bez_lang'].'/lang.php');
+			$this->lang = $lang;
+			$this->localised = true;
+		}
+		var_dump($lang['save']);
+		var_dump($this->getLang('save'));
+
 		$this->issue_types[0] = $this->getLang('type_noneconformity');
 		$this->issue_types[1] = $this->getLang('type_complaint');
 		$this->issue_types[2] = $this->getLang('type_risk');
@@ -2813,6 +2824,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_issues':
 			case 'bds_table':
 			case 'bds_8d':
+			case 'bds_switch_lang':
 				$event->stopPropagation();
 				$event->preventDefault();
 				//disable indexmenu
@@ -2820,6 +2832,21 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				break;
 		}
 		switch($event->data) {
+			case 'bds_switch_lang':
+				$probe = $this->getLang('save');
+				if (!isset($_COOKIE['bez_lang'])) {
+					if ($probe == 'Save') {
+						setcookie('bez_lang', 'en');
+					} else {
+						setcookie('bez_lang', 'pl');
+					}
+				} elseif ($_COOKIE['bez_lang'] == 'en') {
+						setcookie('bez_lang', 'pl');
+				} else {
+						setcookie('bez_lang', 'en');
+				}
+				header('Location: ?do=bds_issues');
+				break;
 			case 'bds_8d':
 				$id = (int) $_GET['bds_issue_id'];
 				$map = new MongoCode('function() {
@@ -3437,6 +3464,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_table':
 			case 'bds_error':
 			case 'bds_8d':
+			case 'bds_switch_lang':
 				$event->stopPropagation(); 
 				$event->preventDefault();  
 				break;
@@ -3470,6 +3498,8 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_8d':
 					$this->generate_8d_html_report($this->report_cursor);
 					break;
+			case 'bds_switch_lang':
+				break;
 		}
 	}
  
@@ -3486,6 +3516,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		if ($this->user_can_edit()) {
 			$lang['btn_bds_issue_report'] = $this->getLang('bds_issue_report');
 		}
+		$lang['btn_bds_switch_lang'] = $this->getLang('bds_switch_lang');
 
 		$event->data['items']['separator'] = '<li style="display:block;float:left;">&nbsp;</li>';
 
@@ -3494,6 +3525,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		if ($this->user_can_edit()) {
 			$event->data['items']['bds_issue_report'] = tpl_action('bds_issue_report', 1, 'li', 1);
 		}
+		$event->data['items']['bds_switch_lang'] = tpl_action('bds_switch_lang', 1, 'li', 1);
 	}
 	public function add_action(&$event, $param) {
 		if ( ! $this->user_can_view()) {
@@ -3505,6 +3537,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 			case 'bds_timeline':
 			case 'bds_issues':
 			case 'bds_issue_report':
+			case 'bds_switch_lang':
 				$event->preventDefault();
 		}
 

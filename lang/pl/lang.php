@@ -248,3 +248,5 @@ $lang['new_issue'] = "Nowy problem";
 $lang['send_mail'] = "Wyślij";
 
 $lang['average_days'] = "Średni czas zamykania zadań w dniach";
+
+$lang['bds_switch_lang'] = "English version";

@@ -246,3 +246,5 @@ $lang['new_issue'] = "New issue";
 $lang['send_mail'] = "Send";
 
 $lang['average_days'] = "Average time of task closing(days)";
+
+$lang['bds_switch_lang'] = "Wersja polska";
