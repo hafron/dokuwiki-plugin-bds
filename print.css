@@ -89,3 +89,7 @@
 #bds_issue_box h2 span {
 	display: none;
 }
+
+.dataTables_length, .dataTables_filter, .dataTables_paginate, .yadcf-filter-wrapper {
+	display: none;
+}

@@ -1,3 +1,6 @@
+/* DOKUWIKI:include jquery.dataTables.js */
+/* DOKUWIKI:include jquery.dataTables.yadcf.js */
+
 bds = {};
 
 bds.gup = function (name) {
@@ -11,7 +14,7 @@ bds.gup = function (name) {
         return results[1];
 };
 
-jQuery(function() {
+jQuery(document).ready(function() {
 	var ids = ['description', 'content_comment_form', 'content_task_form', 'opinion', 'reason'];
 
 	for (var i = 0; i < ids.length; i++) {
@@ -125,4 +128,33 @@ jQuery(function() {
 	jQuery(".bds_block .history_anchor").click(function() {
 		show.call(jQuery("#bds_history h1")[0]);
 	});
+
+
+	/* Dodawanie autofiltrów */
+	var yadcf = [];
+
+	var ix = jQuery(".dattab th.title_field").index();
+	if (ix > -1) {
+		yadcf.push( 
+			{column_number: ix, filter_type: "text", text_data_delimiter: ",", filter_delay: 500, filter_default_label: 'Filter delay is enabled'}
+			);
+	} 
+
+	var ix = jQuery(".dattab th.coordinator_field").index();
+	if (ix > -1) {
+		yadcf.push( 
+			{column_number: ix}
+			);
+	}
+
+	var ix = jQuery(".dattab th.type_field").index();
+	if (ix > -1) {
+		yadcf.push( 
+			{column_number: ix}
+			);
+	}
+
+	jQuery(".dattab").dataTable({
+		"bJQueryUI": false 
+	}).yadcf(yadcf);
 });

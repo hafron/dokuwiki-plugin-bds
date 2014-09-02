@@ -38,11 +38,12 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handle_act_unknown');
 	}
 	public function __construct() {
-		if (isset($_COOKIE['bez_lang'])) {
+		//var_dump($_SESSION[DOKU_COOKIE]);
+		if (isset($_SESSION[DOKU_COOKIE]['translationlc']) && $_SESSION[DOKU_COOKIE]['translationlc'] != '') {
 			$path = DOKU_PLUGIN.$this->getPluginName().'/lang/';
 			$lang = array();
 			// don't include once, in case several plugin components require the same language file
-			@include($path.$_COOKIE['bez_lang'].'/lang.php');
+			@include($path.$_SESSION[DOKU_COOKIE]['translationlc'].'/lang.php');
 			$this->lang = $lang;
 			$this->localised = true;
 		}
@@ -2009,12 +2010,23 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 	}
 	private function html_table_view($doc, $fields, $table='issues') {
-		echo '<table>';
+		echo '<table class="dattab">';
+		echo '<thead>';
 		echo '<tr>';	
 		foreach ($fields as $field) {
-			echo '<th>'.$this->getLang($field).'</th>';
+			echo '<th';
+			if ($field == 'title') {
+				echo ' class="title_field"';
+			} else if ($field == 'coordinator') {
+				echo ' class="coordinator_field"';
+			} else if ($field == 'type') {
+				echo ' class="type_field"';
+			}
+			echo '>'.$this->getLang($field).'</th>';
 		}
 		echo '</tr>';	
+		echo '</thead>';
+		echo '<tbody>';
 		foreach ($doc as $cursor) {
 			echo '<tr>';	
 			foreach ($fields as $field) {
@@ -2032,6 +2044,7 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 				echo '</td>';
 			}
 		}
+		echo '</tbody>';
 		echo '</table>';
 	}
 	private function get_issues_with_states_by_costs($report, $issues, $active, $id_indexed=false) {
@@ -2529,7 +2542,6 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 							$average[$k]['sum'] += time() - $ev['date'];
 							$average[$k]['qt']++;
 						}
-						//var_dump($average);
 
 						$doc2 = $this->issues()->aggregate(
 							array('$match' => array('date' => array('$gt' => $date_limit))),
@@ -2832,18 +2844,21 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		switch($event->data) {
 			case 'bds_switch_lang':
 				$probe = $this->getLang('save');
-				if (!isset($_COOKIE['bez_lang'])) {
+
+				if (!isset($_SESSION[DOKU_COOKIE]['translationlc']) || $_SESSION[DOKU_COOKIE]['translationlc'] == '') {
 					if ($probe == 'Save') {
-						setcookie('bez_lang', 'en');
+						$_SESSION[DOKU_COOKIE]['translationlc'] = 'en';
 					} else {
-						setcookie('bez_lang', 'pl');
+						$_SESSION[DOKU_COOKIE]['translationlc'] = 'pl';
 					}
-				} elseif ($_COOKIE['bez_lang'] == 'en') {
-						setcookie('bez_lang', 'pl');
+				} elseif ($_SESSION[DOKU_COOKIE]['translationlc'] == 'en') {
+						$_SESSION[DOKU_COOKIE]['translationlc'] = 'pl';
 				} else {
-						setcookie('bez_lang', 'en');
+						$_SESSION[DOKU_COOKIE]['translationlc'] = 'en';
 				}
-				header('Location: ?do=bds_issues');
+				//var_dump($_SESSION[DOKU_COOKIE]['translationlc']);
+				//var_dump($_SESSION[DOKU_COOKIE]);
+				//header('Location: ?do=bds_issues');
 				break;
 			case 'bds_8d':
 				$id = (int) $_GET['bds_issue_id'];
