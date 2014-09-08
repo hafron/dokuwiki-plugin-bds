@@ -2030,7 +2030,10 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		foreach ($doc as $cursor) {
 			echo '<tr>';	
 			foreach ($fields as $field) {
-				echo '<td>';
+				echo '<td';
+				if ($field == '_id' || $field == 'date' || $field == 'last_mod_date')
+					echo ' data-sort="'.$cursor[$field].'"';
+				echo '>';
 				//only if title
 				if ($field == 'title') {
 					echo '[';
