@@ -38,12 +38,13 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		$controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'handle_act_unknown');
 	}
 	public function __construct() {
-		//var_dump($_SESSION[DOKU_COOKIE]);
-		if (isset($_SESSION[DOKU_COOKIE]['translationlc']) && $_SESSION[DOKU_COOKIE]['translationlc'] != '') {
+		//$lc = $_SESSION[DOKU_COOKIE]['translationlc'];
+		$lc = $_COOKIE['newlc'];
+		if (isset($lc) && $lc != '') {
 			$path = DOKU_PLUGIN.$this->getPluginName().'/lang/';
 			$lang = array();
 			// don't include once, in case several plugin components require the same language file
-			@include($path.$_SESSION[DOKU_COOKIE]['translationlc'].'/lang.php');
+			@include($path.$lc.'/lang.php');
 			$this->lang = $lang;
 			$this->localised = true;
 		}
@@ -2846,22 +2847,24 @@ class action_plugin_bds extends DokuWiki_Action_Plugin {
 		}
 		switch($event->data) {
 			case 'bds_switch_lang':
-				$probe = $this->getLang('save');
 
-				if (!isset($_SESSION[DOKU_COOKIE]['translationlc']) || $_SESSION[DOKU_COOKIE]['translationlc'] == '') {
+				$probe = $this->getLang('save');
+				//$newlc = $_SESSION[DOKU_COOKIE]['translationlc'];
+				$newlc = $_COOKIE['newlc'];
+				if (!isset($newlc) || $newlc == '') {
 					if ($probe == 'Save') {
-						$_SESSION[DOKU_COOKIE]['translationlc'] = 'en';
+						$newlc = 'pl';
 					} else {
-						$_SESSION[DOKU_COOKIE]['translationlc'] = 'pl';
+						$newlc = 'en';
 					}
-				} elseif ($_SESSION[DOKU_COOKIE]['translationlc'] == 'en') {
-						$_SESSION[DOKU_COOKIE]['translationlc'] = 'pl';
+				} elseif ($newlc == 'en') {
+						$newlc = 'pl';
 				} else {
-						$_SESSION[DOKU_COOKIE]['translationlc'] = 'en';
+						$newlc = 'en';
 				}
-				//var_dump($_SESSION[DOKU_COOKIE]['translationlc']);
-				//var_dump($_SESSION[DOKU_COOKIE]);
-				//header('Location: ?do=bds_issues');
+				//$_SESSION[DOKU_COOKIE]['translationlc'] = $newlc;
+				setcookie('newlc', $newlc);
+				header('Location: ?do=bds_issues');
 				break;
 			case 'bds_8d':
 				$id = (int) $_GET['bds_issue_id'];
