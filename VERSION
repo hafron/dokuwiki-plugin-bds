@@ -32,3 +32,5 @@
 	1. Poprawione sortowanie 
 0.9
 	1. Naprawiony przycisk tłumaczenia
+0.10
+	1. Działa poprawnie dla witryn bez hostname
